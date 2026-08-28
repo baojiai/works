@@ -1,0 +1,34 @@
+# Build artifacts
+/build/
+*.war
+*.class
+
+# Local Tomcat runtime and database files
+/runtime/
+*.db
+*.mv.db
+*.trace.db
+*.lock.db
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+Thumbs.db
+.DS_Store
+
+# Local IDE/editor metadata
+.idea/
+.vscode/
+*.iml
+
+# Local environment and secrets
+.env
+.env.*
+*.secret
+secrets/
+
+# OS-generated files
+desktop.ini

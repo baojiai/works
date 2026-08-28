@@ -1,0 +1,2 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %><c:set var="pageTitle" value="操作未完成"/><%@ include file="header.jspf" %><div class="empty error-state"><b>操作未完成</b><span><c:out value="${not empty error ? error : '请求不存在或系统暂时无法处理。'}"/></span><div><button class="btn" onclick="history.back()">返回上一页</button><a class="btn primary" href="${pageContext.request.contextPath}/dashboard">回到工作台</a></div></div><%@ include file="footer.jspf" %>
+
