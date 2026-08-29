@@ -659,6 +659,35 @@ tbody tr:hover { background: #fbfdff; }
 .ai-assistant-card b { color: #fff; }
 .ai-assistant-card ol { margin: 4px 0 0 18px; padding: 0; color: #b9c4d6; line-height: 1.8; }
 .issue-picker, .service-order-card { border-radius: 16px; }
+.ai-service-empty {
+    min-height: 150px;
+    margin-top: 18px;
+    border: 1px dashed #cbd7ea;
+    border-radius: 16px;
+    background:
+        radial-gradient(circle at 12% 20%, rgba(49,100,244,.08), transparent 28%),
+        #f8fbff;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    gap: 8px;
+    padding: 26px;
+    color: var(--muted);
+}
+.ai-service-empty[hidden] { display: none; }
+.ai-service-empty span {
+    width: 44px;
+    height: 44px;
+    border-radius: 15px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, var(--blue), var(--green));
+    color: #fff;
+    font-weight: 900;
+    box-shadow: 0 14px 28px rgba(49,100,244,.18);
+}
+.ai-service-empty b { color: var(--ink); font-size: 17px; }
+.ai-service-empty small { max-width: 520px; line-height: 1.6; }
 .issue-card-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
 .issue-card {
     text-align: left;

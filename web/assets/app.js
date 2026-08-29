@@ -48,7 +48,8 @@
     var diagnoseButton = repairForm.querySelector('[data-ai-diagnose]');
     var aiResult = repairForm.querySelector('[data-ai-result]');
     var selectedIssue = repairForm.querySelector('[data-selected-issue]');
-    var issueGrid = repairForm.querySelector('.issue-card-grid');
+    var issueGrid = repairForm.querySelector('[data-ai-service-grid]') || repairForm.querySelector('.issue-card-grid');
+    var serviceEmpty = repairForm.querySelector('[data-ai-service-empty]');
     var platformCards = Array.prototype.slice.call(repairForm.querySelectorAll('[data-issue-card]'));
     var deviceSelect = repairForm.querySelector('select[name="deviceId"]');
     var faultSelect = repairForm.querySelector('select[name="faultId"]');
@@ -117,6 +118,7 @@
     function clearGenerated() {
         generatedCards.forEach(function (card) { card.remove(); });
         generatedCards = [];
+        if (serviceEmpty) serviceEmpty.hidden = false;
     }
 
     function iconFor(deviceName, faultName) {
@@ -131,6 +133,7 @@
 
     function renderSuggestions(suggestions, source) {
         clearGenerated();
+        if (serviceEmpty) serviceEmpty.hidden = true;
         platformCards.forEach(function (card) { card.hidden = true; card.classList.remove('active'); });
         suggestions.slice(0, 4).forEach(function (item, index) {
             var matched = platformMatch(item.device, item.fault);
@@ -155,7 +158,7 @@
                 renderAiResult(source || 'AI 已生成服务词条', (item.device || '') + ' · ' + (item.fault || ''), item.note || '', matched ? '该词条已映射到平台服务目录' : '该词条暂未映射到平台目录');
             });
             generatedCards.push(card);
-            issueGrid.insertBefore(card, platformCards[0] || null);
+            issueGrid.appendChild(card);
             if (index === 0) card.click();
         });
     }
@@ -205,7 +208,15 @@
         });
     });
     if (diagnoseButton) diagnoseButton.addEventListener('click', runDiagnose);
-    if (search) search.addEventListener('input', runDiagnose);
+    if (search) {
+        search.addEventListener('input', function () {
+            clearGenerated();
+            selectedIssue.textContent = '等待 AI 诊断';
+            deviceSelect.value = '';
+            faultSelect.value = '';
+            renderAiResult('等待诊断', '暂未判断', '问题已更新，请点击“AI 诊断”生成新的服务词条。', 'AI 生成服务词条');
+        });
+    }
 
     repairForm.addEventListener('submit', function (event) {
         if (!faultSelect.value) {

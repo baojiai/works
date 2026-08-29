@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#f6f8fb">
     <title>${empty pageTitle ? '售后维修协同平台' : pageTitle} · RepairFlow</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=9">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=11">
 </head>
 <body class="app-page">
 <div class="app-layout">

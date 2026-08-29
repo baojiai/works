@@ -55,17 +55,19 @@
             </div>
             <span class="badge" data-selected-issue>等待输入问题</span>
         </div>
-        <div class="issue-card-grid">
+        <div class="ai-service-empty" data-ai-service-empty>
+            <span>AI</span>
+            <b>还没有生成推荐服务</b>
+            <small>请先在上方输入设备问题并点击“AI 诊断”，系统会根据问题生成可选择的服务词条。</small>
+        </div>
+        <div class="issue-card-grid" data-ai-service-grid></div>
+        <div class="platform-catalog" hidden aria-hidden="true">
             <c:forEach items="${faults}" var="x" varStatus="s">
-                <button type="button" class="issue-card" data-issue-card
+                <span data-issue-card
                         data-device-id="${x.device_type_id}"
                         data-fault-id="${x.fault_type_id}"
                         data-device-name="${x.device_name}"
-                        data-fault-name="${x.name}">
-                    <span class="issue-icon">${s.index == 0 ? '⏻' : s.index == 1 ? '⚙' : s.index == 2 ? '🖨' : '✨'}</span>
-                    <b><c:out value="${x.name}"/></b>
-                    <small><c:out value="${x.device_name}"/> · 平台认证工程师可接单</small>
-                </button>
+                        data-fault-name="${x.name}"></span>
             </c:forEach>
         </div>
     </section>

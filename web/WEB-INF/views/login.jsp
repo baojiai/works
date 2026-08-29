@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#f6f8fb">
     <title><c:out value="${editionName}"/> · RepairFlow</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=10">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=11">
 </head>
 <body class="login-page edition-${edition}">
     <section class="login-visual">
@@ -54,6 +54,6 @@
             </c:choose>
         </form>
     </section>
-    <script src="${pageContext.request.contextPath}/assets/app.js?v=10"></script>
+    <script src="${pageContext.request.contextPath}/assets/app.js?v=11"></script>
 </body>
 </html>
