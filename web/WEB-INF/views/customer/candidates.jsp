@@ -2,12 +2,13 @@
 <c:set var="pageTitle" value="选择工程师"/>
 <%@ include file="../header.jspf" %>
 
-<div class="marketplace-hero">
+<div class="marketplace-hero rich-market-hero">
     <div>
         <span class="eyebrow">STEP 2 OF 3 · ENGINEER MARKET</span>
         <h1>附近可接单工程师</h1>
         <p>AI 已根据 <b><c:out value="${repairRequest.device_name}"/></b> · <b><c:out value="${repairRequest.fault_name}"/></b> · <b><c:out value="${repairRequest.area_name}"/></b> 为你筛选。</p>
     </div>
+    <img src="${pageContext.request.contextPath}/assets/images/engineer-market.png" alt="工程师服务市场插画">
     <form method="get" class="market-sort">
         <input type="hidden" name="requestId" value="${repairRequest.repair_request_id}">
         <label>排序方式
@@ -30,7 +31,8 @@
 
 <c:choose>
     <c:when test="${empty candidates}">
-        <div class="empty">
+        <div class="empty illustrated-empty">
+            <img src="${pageContext.request.contextPath}/assets/images/engineer-market.png" alt="暂无工程师插画">
             <b>暂时没有可接单工程师</b>
             <span>可以返回修改服务区域、期望日期或时段，系统会重新搜索可用工程师。</span>
             <a class="btn" href="${pageContext.request.contextPath}/customer/request">重新搜索问题</a>

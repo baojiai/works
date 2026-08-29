@@ -2,11 +2,14 @@
 <c:set var="pageTitle" value="AI 报修"/>
 <%@ include file="../header.jspf" %>
 
-<div class="page-head">
+<div class="page-head rich-page-head">
     <div>
         <span class="eyebrow">STEP 1 OF 3 · AI SERVICE MATCH</span>
         <h1>像点外卖一样预约维修工程师</h1>
-        <p>不用先选择复杂故障类型，先搜索你遇到的问题，平台 AI 会帮你判断方向并推荐可接单工程师。</p>
+        <p>不用先选择复杂故障类型。你只要描述问题，AI 会生成服务词条，并匹配可预约工程师。</p>
+    </div>
+    <div class="page-head-art">
+        <img src="${pageContext.request.contextPath}/assets/images/hero-service.png" alt="AI 维修预约插画">
     </div>
 </div>
 
@@ -19,26 +22,26 @@
         <div class="repair-search-main">
             <span class="eyebrow">专属 AI 诊断助手</span>
             <h2>先告诉我：设备哪里不舒服？</h2>
-            <p>例如：电脑开不了机、打印机一直卡纸、冰箱不制冷、系统蓝屏、家电异响。</p>
+            <p>例如：电饭煲打不开、微波炉不加热、打印机一直卡纸、冰箱不制冷、电脑蓝屏重启。</p>
             <div class="repair-search-box">
-                <input name="problemQuery" value="${param.problemQuery}" data-problem-search placeholder="搜索你的问题，例如“电脑打不开”“打印不了”“冰箱不制冷”">
+                <input name="problemQuery" value="${param.problemQuery}" data-problem-search placeholder="搜索你的问题，例如“微波炉加热有问题”“电饭煲打不开”">
                 <button type="button" class="btn primary" data-ai-diagnose>AI 诊断</button>
             </div>
             <div class="search-examples">
-                <button type="button" data-example="电脑无法开机">电脑无法开机</button>
-                <button type="button" data-example="系统很卡或蓝屏">系统很卡或蓝屏</button>
-                <button type="button" data-example="打印机不能打印">打印机不能打印</button>
-                <button type="button" data-example="冰箱不制冷">冰箱不制冷</button>
+                <button type="button" data-example="微波炉加热有问题，食物加热很久也不热">微波炉不加热</button>
+                <button type="button" data-example="电饭煲打不开，插电后没有反应">电饭煲打不开</button>
+                <button type="button" data-example="打印机一直卡纸不能打印">打印机卡纸</button>
+                <button type="button" data-example="电脑蓝屏并且频繁重启">电脑蓝屏重启</button>
             </div>
         </div>
         <aside class="ai-assistant-card" data-ai-result>
             <div class="ai-orb">AI</div>
             <h3>等待你的问题</h3>
-            <p>输入问题后，我会根据平台服务能力推断故障大类、提醒可先检查的事项，并自动为下一步筛选工程师。</p>
+            <p>输入问题后，我会生成与当前问题相关的服务词条，再判断哪些词条能进入工程师预约市场。</p>
             <ol>
                 <li>理解问题描述</li>
-                <li>定位维修类型</li>
-                <li>推荐附近可预约工程师</li>
+                <li>动态生成服务词条</li>
+                <li>匹配附近可预约工程师</li>
             </ol>
         </aside>
     </section>
@@ -48,7 +51,7 @@
             <div>
                 <span class="eyebrow">AI MATCHED SERVICES</span>
                 <h2>AI 生成的服务词条</h2>
-                <p>这些词条会根据你上方输入的问题实时生成；带“可预约工程师”的词条可以继续进入工程师市场。</p>
+                <p>这些词条会根据上方输入的问题实时生成；带“可预约工程师”的词条可以继续进入工程师市场。</p>
             </div>
             <span class="badge" data-selected-issue>等待输入问题</span>
         </div>
@@ -59,7 +62,7 @@
                         data-fault-id="${x.fault_type_id}"
                         data-device-name="${x.device_name}"
                         data-fault-name="${x.name}">
-                    <span class="issue-icon">${s.index == 0 ? '⏻' : s.index == 1 ? '⚙' : s.index == 2 ? '🖨' : '❄'}</span>
+                    <span class="issue-icon">${s.index == 0 ? '⏻' : s.index == 1 ? '⚙' : s.index == 2 ? '🖨' : '✨'}</span>
                     <b><c:out value="${x.name}"/></b>
                     <small><c:out value="${x.device_name}"/> · 平台认证工程师可接单</small>
                 </button>

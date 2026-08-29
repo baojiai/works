@@ -33,6 +33,16 @@
     </c:forEach>
 </section>
 
+<section class="card visual-feature-card">
+    <div>
+        <span class="eyebrow">PLATFORM OVERVIEW</span>
+        <h2>从用户报修到工程师接单，再到仓库配件协同</h2>
+        <p>RepairFlow 将客户、工程师、仓库和平台管理连接到同一个服务闭环里，适合课程设计演示完整业务流程。</p>
+        <div class="chips"><span>AI 报修</span><span>工程师市场</span><span>认证审核</span><span>配件协同</span></div>
+    </div>
+    <img src="${pageContext.request.contextPath}/assets/images/ops-dashboard.png" alt="平台运营中心插画">
+</section>
+
 <section class="card">
     <div class="section-head">
         <div><span class="eyebrow">TASK BOARD</span><h2>常用事项</h2></div>
