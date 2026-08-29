@@ -42,6 +42,7 @@ public final class Database {
                 runScript(c, "/seed-h2.sql");
             }
             ensureEngineerApplicationTable(c);
+            ensureServiceCatalog(c);
         }
     }
 
@@ -60,6 +61,25 @@ public final class Database {
 
     private static boolean tableExists(Connection c, String table) throws SQLException {
         try (ResultSet rs = c.getMetaData().getTables(null, null, table, new String[]{"TABLE"})) { return rs.next(); }
+    }
+
+    private static void ensureServiceCatalog(Connection c) throws SQLException {
+        long homeDevice = ensureDeviceType(c, "家用电器");
+        ensureFaultType(c, homeDevice, "制冷异常");
+        ensureFaultType(c, homeDevice, "加热异常");
+        ensureFaultType(c, homeDevice, "通电异常");
+        ensureFaultType(c, homeDevice, "异响或漏水");
+    }
+
+    private static long ensureDeviceType(Connection c, String name) throws SQLException {
+        Map<String,Object> row = one(c, "SELECT device_type_id FROM device_type WHERE name=?", name);
+        if (row != null) return ((Number) row.get("device_type_id")).longValue();
+        return insert(c, "INSERT INTO device_type(name,status) VALUES(?,'ACTIVE')", name);
+    }
+
+    private static void ensureFaultType(Connection c, long deviceId, String name) throws SQLException {
+        Map<String,Object> row = one(c, "SELECT fault_type_id FROM fault_type WHERE device_type_id=? AND name=?", deviceId, name);
+        if (row == null) insert(c, "INSERT INTO fault_type(device_type_id,name,status) VALUES(?,?,'ACTIVE')", deviceId, name);
     }
 
     private static void runScript(Connection c, String resource) throws Exception {
