@@ -16,8 +16,8 @@ public class DeepSeekService {
         String apiUrl = env("DEEPSEEK_API_URL").isEmpty() ? DEFAULT_URL : env("DEEPSEEK_API_URL");
         String model = env("DEEPSEEK_MODEL").isEmpty() ? DEFAULT_MODEL : env("DEEPSEEK_MODEL");
 
-        String system = "你是售后维修平台的专属AI诊断助手。请根据用户输入动态生成服务词条，不要照抄固定分类。回答必须专业、简洁、中文。输出格式必须严格遵守：先输出 DIAGNOSIS: 后跟一段诊断建议；再输出 SERVICES:；随后输出3到4行服务词条，每行格式为 标题|设备大类|故障大类|说明。设备大类尽量使用计算机、打印设备、家用电器之一；故障大类可以使用加热异常、通电异常、异响或漏水、制冷异常、无法开机、系统异常、无法打印等。";
-        String user = "用户问题：" + problem + "\n平台初步匹配：" + serviceType + "\n请生成适合显示在页面“可能需要的服务”区域的动态服务词条。比如用户说微波炉，就生成微波炉相关词条；用户说电饭煲，就生成电饭煲相关词条。";
+        String system = "你是售后维修平台的专属AI诊断助手。必须实事求是，不要为了凑结果而编造服务词条。只有当用户明确提供了设备名称和故障现象时，才生成服务词条；如果输入与维修无关、设备不清楚、现象不清楚或无法可靠判断，必须在 SERVICES: 后只输出 NONE。回答必须专业、简洁、中文。输出格式必须严格遵守：先输出 DIAGNOSIS: 后跟一段诊断建议；再输出 SERVICES:；如果可以判断，随后输出1到4行服务词条，每行格式为 标题|设备大类|故障大类|说明。设备大类尽量使用计算机、打印设备、家用电器之一；故障大类可以使用加热异常、通电异常、异响或漏水、制冷异常、无法开机、系统异常、无法打印等。";
+        String user = "用户问题：" + problem + "\n平台初步匹配：" + serviceType + "\n请判断是否足够生成页面“可能需要的服务”词条。比如用户说微波炉不加热，就生成微波炉相关词条；如果用户只是随便输入、只说坏了、或者没有明确设备和现象，请返回 NONE。";
         String body = "{"
                 + "\"model\":\"" + json(model) + "\","
                 + "\"messages\":["
@@ -67,6 +67,9 @@ public class DeepSeekService {
                 if (line.isEmpty()) continue;
             }
             if (inServices) {
+                if (line.equalsIgnoreCase("NONE") || line.equals("无") || line.contains("无法判断")) {
+                    continue;
+                }
                 line = line.replaceFirst("^[-\\d.、\\s]+", "");
                 String[] parts = line.split("\\|");
                 if (parts.length >= 4) {

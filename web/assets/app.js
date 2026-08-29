@@ -50,6 +50,7 @@
     var selectedIssue = repairForm.querySelector('[data-selected-issue]');
     var issueGrid = repairForm.querySelector('[data-ai-service-grid]') || repairForm.querySelector('.issue-card-grid');
     var serviceEmpty = repairForm.querySelector('[data-ai-service-empty]');
+    var defaultServiceEmptyHtml = serviceEmpty ? serviceEmpty.innerHTML : '';
     var platformCards = Array.prototype.slice.call(repairForm.querySelectorAll('[data-issue-card]'));
     var deviceSelect = repairForm.querySelector('select[name="deviceId"]');
     var faultSelect = repairForm.querySelector('select[name="faultId"]');
@@ -69,7 +70,7 @@
         { title: '打印设备维修', device: '打印设备', fault: '无法打印', note: '适合卡纸、脱机、不出纸、打印失败。', words: ['打印机', '打印', '卡纸', '脱机', '墨盒', '硒鼓'] },
         { title: '微波炉加热维修', device: '家用电器', fault: '加热异常', note: '适合微波炉不加热、加热慢、食物不热。', words: ['微波炉', '不加热', '加热', '不热', '食物'] },
         { title: '电饭煲通电检测', device: '家用电器', fault: '通电异常', note: '适合电饭煲、热水器、小家电插电无反应。', words: ['电饭煲', '热水器', '电磁炉', '打不开', '不通电', '跳闸', '指示灯'] },
-        { title: '家电异响漏水维修', device: '家用电器', fault: '异响或漏水', note: '适合洗衣机、空调、热水器异响、漏水、焦味。', words: ['异响', '漏水', '噪音', '震动', '焦味', '冒烟'] },
+        { title: '家电异响漏水维修', device: '家用电器', fault: '异响或漏水', note: '适合洗衣机、空调、热水器异响、漏水、焦味。', words: ['洗衣机', '异响', '漏水', '噪音', '震动', '焦味', '冒烟', '脱水', '甩干'] },
         { title: '制冷系统检修', device: '家用电器', fault: '制冷异常', note: '适合冰箱、空调不制冷、冷藏不凉。', words: ['冰箱', '空调', '不制冷', '制冷', '冷藏', '冷冻'] }
     ];
 
@@ -100,13 +101,16 @@
             });
             return { rule: rule, score: score };
         }).sort(function (a, b) { return b.score - a.score; });
-        var picked = ranked.filter(function (x) { return x.score > 0; }).slice(0, 4).map(function (x) { return x.rule; });
-        if (!picked.length) picked = [
-            { title: 'AI 综合检测', device: '家用电器', fault: '通电异常', note: '根据描述先做基础通电和安全检查。' },
-            { title: '现场故障排查', device: '家用电器', fault: '异响或漏水', note: '适合现象不明确、需要工程师上门确认的问题。' },
-            { title: '设备功能检测', device: '计算机', fault: '系统异常', note: '如果是电子设备功能异常，可先做系统化排查。' }
-        ];
-        return picked;
+        return ranked.filter(function (x) { return x.score > 0; }).slice(0, 4).map(function (x) { return x.rule; });
+    }
+
+    function hasRepairSignal(query) {
+        var q = normalize(query);
+        if (q.length < 3) return false;
+        var deviceWords = ['电脑', '主机', '笔记本', '打印机', '打印', '微波炉', '电饭煲', '热水器', '电磁炉', '洗衣机', '冰箱', '空调', '家电', '设备'];
+        var symptomWords = ['不开机', '无法开机', '打不开', '坏', '故障', '异常', '不加热', '不热', '不制冷', '卡纸', '蓝屏', '卡顿', '死机', '漏水', '异响', '噪音', '冒烟', '焦味', '跳闸', '不通电', '没反应', '脱水', '甩干'];
+        return deviceWords.some(function (word) { return q.indexOf(normalize(word)) >= 0; })
+            && symptomWords.some(function (word) { return q.indexOf(normalize(word)) >= 0; });
     }
 
     function renderAiResult(title, serviceText, advice, source) {
@@ -118,7 +122,21 @@
     function clearGenerated() {
         generatedCards.forEach(function (card) { card.remove(); });
         generatedCards = [];
-        if (serviceEmpty) serviceEmpty.hidden = false;
+        if (serviceEmpty) {
+            serviceEmpty.innerHTML = defaultServiceEmptyHtml;
+            serviceEmpty.hidden = false;
+        }
+    }
+
+    function renderNoConfidentMatch(message) {
+        clearGenerated();
+        deviceSelect.value = '';
+        faultSelect.value = '';
+        selectedIssue.textContent = '暂不推荐';
+        if (serviceEmpty) {
+            serviceEmpty.hidden = false;
+            serviceEmpty.innerHTML = '<span>?</span><b>暂时无法生成可靠推荐</b><small>' + escapeHtml(message || '请补充设备名称和具体现象，例如“微波炉不加热”“打印机一直卡纸”“电脑蓝屏重启”。') + '</small>';
+        }
     }
 
     function iconFor(deviceName, faultName) {
@@ -179,12 +197,18 @@
             if (data && data.ok && data.suggestions && data.suggestions.length) {
                 renderSuggestions(data.suggestions, 'DeepSeek 生成');
                 renderAiResult('DeepSeek 已生成词条', serviceText, data.answer, '由 DeepSeek 生成服务建议');
-            } else {
+            } else if (fallbackSuggestions && fallbackSuggestions.length) {
                 renderSuggestions(fallbackSuggestions, '本地 AI 生成');
+            } else {
+                renderNoConfidentMatch('AI 没有给出足够可靠的服务词条。请补充设备名称、故障现象和发生场景后再诊断。');
             }
         }).catch(function () {
             if (currentSeq !== aiRequestSeq) return;
-            renderSuggestions(fallbackSuggestions, '本地 AI 生成');
+            if (fallbackSuggestions && fallbackSuggestions.length) {
+                renderSuggestions(fallbackSuggestions, '本地 AI 生成');
+            } else {
+                renderNoConfidentMatch('当前无法获得可靠 AI 结果，也没有本地规则命中。请补充更明确的维修信息。');
+            }
         });
     }
 
@@ -196,7 +220,17 @@
             renderAiResult('等待你的问题', '暂未判断', '输入问题后，AI 会生成与问题相关的服务词条。', 'AI 生成服务词条');
             return;
         }
+        if (!hasRepairSignal(queryText)) {
+            renderNoConfidentMatch('这个描述缺少明确的设备名称或故障现象，系统不会强行推荐。请写清楚“什么设备 + 出现什么问题”。');
+            renderAiResult('无法可靠判断', '信息不足', '为了避免误导，当前不会生成服务词条。请补充设备名称和具体现象后再诊断。', '实事求是模式');
+            return;
+        }
         var suggestions = localSuggestions(queryText);
+        if (!suggestions.length) {
+            renderNoConfidentMatch('目前平台本地规则没有匹配到这个问题。我会尝试请求 DeepSeek；如果 AI 也不能明确判断，就不会给出预约词条。');
+            askDeepSeek('待进一步判断', []);
+            return;
+        }
         renderSuggestions(suggestions, '本地 AI 快速生成');
         askDeepSeek(suggestions[0].device + ' · ' + suggestions[0].fault, suggestions);
     }
