@@ -4,19 +4,20 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 public class DeepSeekService {
     private static final String DEFAULT_URL = "https://api.deepseek.com/chat/completions";
     private static final String DEFAULT_MODEL = "deepseek-v4-flash";
 
-    public String diagnose(String problem, String serviceType) throws Exception {
+    public AiResult diagnose(String problem, String serviceType) throws Exception {
         String key = env("DEEPSEEK_API_KEY");
         if (key.isEmpty()) throw new IllegalStateException("DeepSeek API Key 未配置");
         String apiUrl = env("DEEPSEEK_API_URL").isEmpty() ? DEFAULT_URL : env("DEEPSEEK_API_URL");
         String model = env("DEEPSEEK_MODEL").isEmpty() ? DEFAULT_MODEL : env("DEEPSEEK_MODEL");
 
-        String system = "你是售后维修平台的专属AI诊断助手。你的任务不是最终维修诊断，而是根据用户描述进行初步定位，帮助用户理解问题、选择合适工程师。回答必须简洁、专业、中文，避免夸大，不承诺一定修好。";
-        String user = "用户问题：" + problem + "\n平台初步匹配服务：" + serviceType + "\n请输出三部分：1）初步判断；2）建议先检查；3）为什么推荐这类工程师。每部分不超过45字。";
+        String system = "你是售后维修平台的专属AI诊断助手。请根据用户输入动态生成服务词条，不要照抄固定分类。回答必须专业、简洁、中文。输出格式必须严格遵守：先输出 DIAGNOSIS: 后跟一段诊断建议；再输出 SERVICES:；随后输出3到4行服务词条，每行格式为 标题|设备大类|故障大类|说明。设备大类尽量使用计算机、打印设备、家用电器之一；故障大类可以使用加热异常、通电异常、异响或漏水、制冷异常、无法开机、系统异常、无法打印等。";
+        String user = "用户问题：" + problem + "\n平台初步匹配：" + serviceType + "\n请生成适合显示在页面“可能需要的服务”区域的动态服务词条。比如用户说微波炉，就生成微波炉相关词条；用户说电饭煲，就生成电饭煲相关词条。";
         String body = "{"
                 + "\"model\":\"" + json(model) + "\","
                 + "\"messages\":["
@@ -24,13 +25,13 @@ public class DeepSeekService {
                 + "{\"role\":\"user\",\"content\":\"" + json(user) + "\"}"
                 + "],"
                 + "\"stream\":false,"
-                + "\"temperature\":0.3,"
-                + "\"max_tokens\":220"
+                + "\"temperature\":0.35,"
+                + "\"max_tokens\":420"
                 + "}";
 
         HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
         conn.setConnectTimeout(8000);
-        conn.setReadTimeout(18000);
+        conn.setReadTimeout(20000);
         conn.setRequestMethod("POST");
         conn.setDoOutput(true);
         conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
@@ -45,7 +46,39 @@ public class DeepSeekService {
         if (code < 200 || code >= 300) throw new IllegalStateException("DeepSeek 调用失败，HTTP " + code);
         String content = extractContent(response);
         if (content.trim().isEmpty()) throw new IllegalStateException("DeepSeek 返回内容为空");
-        return content.trim();
+        return parse(content.trim());
+    }
+
+    private static AiResult parse(String content) {
+        AiResult result = new AiResult();
+        result.answer = content;
+        boolean inServices = false;
+        StringBuilder diagnosis = new StringBuilder();
+        for (String rawLine : content.split("\\r?\\n")) {
+            String line = rawLine.trim();
+            if (line.isEmpty()) continue;
+            if (line.equalsIgnoreCase("SERVICES:") || line.startsWith("SERVICES：")) {
+                inServices = true;
+                continue;
+            }
+            if (line.equalsIgnoreCase("DIAGNOSIS:") || line.startsWith("DIAGNOSIS：")) {
+                inServices = false;
+                line = line.replaceFirst("(?i)^DIAGNOSIS[:：]\\s*", "").trim();
+                if (line.isEmpty()) continue;
+            }
+            if (inServices) {
+                line = line.replaceFirst("^[-\\d.、\\s]+", "");
+                String[] parts = line.split("\\|");
+                if (parts.length >= 4) {
+                    result.suggestions.add(new Suggestion(parts[0].trim(), parts[1].trim(), parts[2].trim(), parts[3].trim()));
+                }
+            } else {
+                if (diagnosis.length() > 0) diagnosis.append('\n');
+                diagnosis.append(line);
+            }
+        }
+        if (diagnosis.length() > 0) result.answer = diagnosis.toString();
+        return result;
     }
 
     private static String env(String name) {
@@ -83,13 +116,9 @@ public class DeepSeekService {
                     catch (NumberFormatException e) { out.append("\\u").append(hex); i += 4; }
                 } else out.append(ch);
                 escape = false;
-            } else if (ch == '\\') {
-                escape = true;
-            } else if (ch == '"') {
-                break;
-            } else {
-                out.append(ch);
-            }
+            } else if (ch == '\\') escape = true;
+            else if (ch == '"') break;
+            else out.append(ch);
         }
         return out.toString();
     }
@@ -106,5 +135,23 @@ public class DeepSeekService {
             else sb.append(ch);
         }
         return sb.toString();
+    }
+
+    public static class AiResult {
+        public String answer = "";
+        public final List<Suggestion> suggestions = new ArrayList<>();
+    }
+
+    public static class Suggestion {
+        public final String title;
+        public final String device;
+        public final String fault;
+        public final String note;
+        public Suggestion(String title, String device, String fault, String note) {
+            this.title = title;
+            this.device = device;
+            this.fault = fault;
+            this.note = note;
+        }
     }
 }

@@ -47,10 +47,10 @@
         <div class="section-head">
             <div>
                 <span class="eyebrow">AI MATCHED SERVICES</span>
-                <h2>可能需要的服务</h2>
-                <p>你可以让 AI 自动选择，也可以手动点选一个更接近的问题卡片。</p>
+                <h2>AI 生成的服务词条</h2>
+                <p>这些词条会根据你上方输入的问题实时生成；带“可预约工程师”的词条可以继续进入工程师市场。</p>
             </div>
-            <span class="badge" data-selected-issue>尚未选择</span>
+            <span class="badge" data-selected-issue>等待输入问题</span>
         </div>
         <div class="issue-card-grid">
             <c:forEach items="${faults}" var="x" varStatus="s">

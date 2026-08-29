@@ -49,57 +49,27 @@
     var aiResult = repairForm.querySelector('[data-ai-result]');
     var selectedIssue = repairForm.querySelector('[data-selected-issue]');
     var issueGrid = repairForm.querySelector('.issue-card-grid');
-    var issueCards = Array.prototype.slice.call(repairForm.querySelectorAll('[data-issue-card]'));
+    var platformCards = Array.prototype.slice.call(repairForm.querySelectorAll('[data-issue-card]'));
     var deviceSelect = repairForm.querySelector('select[name="deviceId"]');
     var faultSelect = repairForm.querySelector('select[name="faultId"]');
     var description = repairForm.querySelector('textarea[name="description"]');
     var aiEndpoint = repairForm.dataset.aiEndpoint;
     var aiRequestSeq = 0;
-    var virtualCard = null;
+    var generatedCards = [];
 
-    var ruleGroups = [
-        {
-            service: '计算机 · 无法开机',
-            deviceWords: ['电脑', '主机', '笔记本', '显示器'],
-            faultWords: ['开不了', '打不开', '不开机', '黑屏', '启动', '电源', '没反应', '无法开机'],
-            hint: '建议先检查电源、插座、适配器和指示灯状态。若仍无反应，通常需要工程师检测电源模块或主板。'
-        },
-        {
-            service: '计算机 · 系统异常',
-            deviceWords: ['电脑', '笔记本', '系统'],
-            faultWords: ['系统', '蓝屏', '卡顿', '死机', '报错', '崩溃', '中毒', '很慢', '重启'],
-            hint: '这类问题可能来自系统文件、驱动或存储异常。建议提前记录报错提示，工程师可现场做系统诊断。'
-        },
-        {
-            service: '打印设备 · 无法打印',
-            deviceWords: ['打印机', '复印机', '打印'],
-            faultWords: ['打印', '卡纸', '墨盒', '硒鼓', '不出纸', '脱机', '不能打印'],
-            hint: '建议先确认纸张、墨盒/硒鼓、网络连接和打印队列。平台会优先推荐打印设备工程师。'
-        },
-        {
-            service: '家用电器 · 制冷异常',
-            deviceWords: ['冰箱', '冰柜', '空调', '冷柜'],
-            faultWords: ['不制冷', '制冷', '冷冻', '冷藏', '温度', '结冰', '不凉'],
-            hint: '制冷异常可能与压缩机、制冷剂、温控或风道有关，建议预约具备家电维修经验的工程师。'
-        },
-        {
-            service: '家用电器 · 加热异常',
-            deviceWords: ['微波炉', '烤箱', '电磁炉', '热水器', '电饭煲', '电水壶', '家电'],
-            faultWords: ['不加热', '加热慢', '加热', '不热', '火力', '温度上不去', '食物不热'],
-            hint: '微波炉或加热类家电常见原因包括磁控管、高压二极管、门锁开关、加热盘或温控件异常。'
-        },
-        {
-            service: '家用电器 · 通电异常',
-            deviceWords: ['微波炉', '烤箱', '电磁炉', '热水器', '电饭煲', '洗衣机', '家电'],
-            faultWords: ['不通电', '跳闸', '插电没反应', '指示灯不亮', '烧保险', '电源'],
-            hint: '通电异常通常需要检查电源线、保险、控制板或内部短路，不建议用户自行拆机。'
-        },
-        {
-            service: '家用电器 · 异响或漏水',
-            deviceWords: ['洗衣机', '空调', '热水器', '微波炉', '家电'],
-            faultWords: ['异响', '漏水', '噪音', '震动', '嗡嗡响', '冒烟', '焦味'],
-            hint: '异响、漏水或焦味属于需要尽快排查的异常，建议停止使用并预约家电工程师。'
-        }
+    platformCards.forEach(function (card) {
+        card.classList.add('platform-catalog-card');
+        card.hidden = true;
+    });
+
+    var localRules = [
+        { title: '电脑开机检测', device: '计算机', fault: '无法开机', note: '适合黑屏、按电源无反应、主机无法启动。', words: ['电脑', '主机', '笔记本', '开不了', '打不开', '无法开机', '黑屏', '电源'] },
+        { title: '系统故障排查', device: '计算机', fault: '系统异常', note: '适合蓝屏、卡顿、频繁重启、系统报错。', words: ['电脑', '系统', '蓝屏', '卡顿', '死机', '报错', '重启'] },
+        { title: '打印设备维修', device: '打印设备', fault: '无法打印', note: '适合卡纸、脱机、不出纸、打印失败。', words: ['打印机', '打印', '卡纸', '脱机', '墨盒', '硒鼓'] },
+        { title: '微波炉加热维修', device: '家用电器', fault: '加热异常', note: '适合微波炉不加热、加热慢、食物不热。', words: ['微波炉', '不加热', '加热', '不热', '食物'] },
+        { title: '电饭煲通电检测', device: '家用电器', fault: '通电异常', note: '适合电饭煲、热水器、小家电插电无反应。', words: ['电饭煲', '热水器', '电磁炉', '打不开', '不通电', '跳闸', '指示灯'] },
+        { title: '家电异响漏水维修', device: '家用电器', fault: '异响或漏水', note: '适合洗衣机、空调、热水器异响、漏水、焦味。', words: ['异响', '漏水', '噪音', '震动', '焦味', '冒烟'] },
+        { title: '制冷系统检修', device: '家用电器', fault: '制冷异常', note: '适合冰箱、空调不制冷、冷藏不凉。', words: ['冰箱', '空调', '不制冷', '制冷', '冷藏', '冷冻'] }
     ];
 
     function normalize(text) {
@@ -112,65 +82,89 @@
         });
     }
 
-    function cardText(card) {
-        return normalize([card.dataset.deviceName, card.dataset.faultName, card.textContent].join(' '));
+    function platformMatch(deviceName, faultName) {
+        var d = normalize(deviceName);
+        var f = normalize(faultName);
+        return platformCards.filter(function (card) {
+            return normalize(card.dataset.deviceName).indexOf(d) >= 0 && normalize(card.dataset.faultName).indexOf(f) >= 0;
+        })[0] || null;
     }
 
-    function inferGroup(query) {
-        var best = null;
-        var bestScore = 0;
-        ruleGroups.forEach(function (group) {
+    function localSuggestions(query) {
+        var q = normalize(query);
+        var ranked = localRules.map(function (rule) {
             var score = 0;
-            group.deviceWords.forEach(function (word) {
-                if (query.indexOf(normalize(word)) >= 0) score += 5;
+            rule.words.forEach(function (word) {
+                if (q.indexOf(normalize(word)) >= 0) score += 1;
             });
-            group.faultWords.forEach(function (word) {
-                if (query.indexOf(normalize(word)) >= 0) score += 6;
-            });
-            if (score > bestScore) {
-                best = group;
-                bestScore = score;
-            }
-        });
-        return best ? { group: best, score: bestScore } : null;
+            return { rule: rule, score: score };
+        }).sort(function (a, b) { return b.score - a.score; });
+        var picked = ranked.filter(function (x) { return x.score > 0; }).slice(0, 4).map(function (x) { return x.rule; });
+        if (!picked.length) picked = [
+            { title: 'AI 综合检测', device: '家用电器', fault: '通电异常', note: '根据描述先做基础通电和安全检查。' },
+            { title: '现场故障排查', device: '家用电器', fault: '异响或漏水', note: '适合现象不明确、需要工程师上门确认的问题。' },
+            { title: '设备功能检测', device: '计算机', fault: '系统异常', note: '如果是电子设备功能异常，可先做系统化排查。' }
+        ];
+        return picked;
     }
 
-    function scoreCard(card, query) {
-        var text = cardText(card);
-        var score = 0;
-        var inferred = inferGroup(query);
-        if (!query) return 0;
-        if (text.indexOf(query) >= 0) score += 10;
-        if (inferred) {
-            var parts = inferred.group.service.split(' · ');
-            if (text.indexOf(normalize(parts[0])) >= 0) score += 5;
-            if (text.indexOf(normalize(parts[1])) >= 0) score += 9;
-        }
-        ruleGroups.forEach(function (group) {
-            group.deviceWords.concat(group.faultWords).forEach(function (word) {
-                word = normalize(word);
-                if (query.indexOf(word) >= 0 && text.indexOf(word) >= 0) score += 4;
-            });
-        });
-        return score;
-    }
-
-    function findHint(query) {
-        var inferred = inferGroup(query);
-        return inferred ? inferred.group.hint : '我会先根据你的描述进行初步判断；如果平台服务目录里暂无对应类目，会提醒管理员补充服务类型。';
-    }
-
-    function renderAiResult(title, serviceText, advice, muted) {
+    function renderAiResult(title, serviceText, advice, source) {
         if (!aiResult) return;
         var safeAdvice = escapeHtml(advice || '').replace(/\n/g, '<br>');
-        aiResult.innerHTML = '<div class="ai-orb">AI</div><h3>' + escapeHtml(title) + '</h3><p>判断为：<b>' + escapeHtml(serviceText) + '</b>。</p><p>' + safeAdvice + '</p><ol><li>保留用户原始问题</li><li>筛选同区域可接单工程师</li><li>' + (muted ? '平台本地规则辅助匹配' : '由 DeepSeek 生成诊断建议') + '</li></ol>';
+        aiResult.innerHTML = '<div class="ai-orb">AI</div><h3>' + escapeHtml(title) + '</h3><p>判断为：<b>' + escapeHtml(serviceText) + '</b>。</p><p>' + safeAdvice + '</p><ol><li>根据输入生成服务词条</li><li>自动匹配平台可预约分类</li><li>' + escapeHtml(source || 'AI 辅助推荐') + '</li></ol>';
     }
 
-    function askDeepSeekText(serviceText, fallbackAdvice) {
+    function clearGenerated() {
+        generatedCards.forEach(function (card) { card.remove(); });
+        generatedCards = [];
+    }
+
+    function iconFor(deviceName, faultName) {
+        var text = deviceName + faultName;
+        if (text.indexOf('打印') >= 0) return '🖨';
+        if (text.indexOf('计算机') >= 0 || text.indexOf('电脑') >= 0) return '💻';
+        if (text.indexOf('加热') >= 0 || text.indexOf('微波') >= 0 || text.indexOf('电饭煲') >= 0) return '🔥';
+        if (text.indexOf('制冷') >= 0 || text.indexOf('冰箱') >= 0 || text.indexOf('空调') >= 0) return '❄';
+        if (text.indexOf('漏水') >= 0) return '💧';
+        return '✨';
+    }
+
+    function renderSuggestions(suggestions, source) {
+        clearGenerated();
+        platformCards.forEach(function (card) { card.hidden = true; card.classList.remove('active'); });
+        suggestions.slice(0, 4).forEach(function (item, index) {
+            var matched = platformMatch(item.device, item.fault);
+            var card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'issue-card ai-generated-service' + (matched ? '' : ' unavailable');
+            card.dataset.deviceName = item.device || '服务类型';
+            card.dataset.faultName = item.fault || item.title || '待确认';
+            card.dataset.deviceId = matched ? matched.dataset.deviceId : '';
+            card.dataset.faultId = matched ? matched.dataset.faultId : '';
+            card.innerHTML =
+                '<span class="issue-icon">' + iconFor(item.device || '', item.title || item.fault || '') + '</span>' +
+                '<b>' + escapeHtml(item.title || item.fault || 'AI 推荐服务') + '</b>' +
+                '<small>' + escapeHtml(item.note || ((item.device || '') + ' · ' + (item.fault || ''))) + '</small>' +
+                '<em>' + (matched ? '可预约工程师' : '平台待补充类目') + '</em>';
+            card.addEventListener('click', function () {
+                generatedCards.forEach(function (x) { x.classList.remove('active'); });
+                card.classList.add('active');
+                deviceSelect.value = card.dataset.deviceId || '';
+                faultSelect.value = card.dataset.faultId || '';
+                selectedIssue.textContent = (item.title || item.fault || 'AI 推荐服务') + (matched ? ' · 可预约' : ' · 待补充');
+                renderAiResult(source || 'AI 已生成服务词条', (item.device || '') + ' · ' + (item.fault || ''), item.note || '', matched ? '该词条已映射到平台服务目录' : '该词条暂未映射到平台目录');
+            });
+            generatedCards.push(card);
+            issueGrid.insertBefore(card, platformCards[0] || null);
+            if (index === 0) card.click();
+        });
+    }
+
+    function askDeepSeek(serviceText, fallbackSuggestions) {
         var queryText = (search.value || '').trim();
         if (!aiEndpoint || !queryText) return;
         var currentSeq = ++aiRequestSeq;
-        renderAiResult('DeepSeek 正在诊断', serviceText, '我正在结合你的原始描述生成更自然的排查建议，请稍等。', false);
+        renderAiResult('DeepSeek 正在生成词条', serviceText, '我正在根据你的问题生成更贴近场景的服务词条。', '等待 DeepSeek 返回');
         fetch(aiEndpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
@@ -179,106 +173,31 @@
             return res.json();
         }).then(function (data) {
             if (currentSeq !== aiRequestSeq) return;
-            if (data && data.ok) renderAiResult('DeepSeek 已完成诊断', serviceText, data.answer, false);
-            else renderAiResult('AI 已完成初步定位', serviceText, fallbackAdvice || findHint(normalize(search.value)), true);
+            if (data && data.ok && data.suggestions && data.suggestions.length) {
+                renderSuggestions(data.suggestions, 'DeepSeek 生成');
+                renderAiResult('DeepSeek 已生成词条', serviceText, data.answer, '由 DeepSeek 生成服务建议');
+            } else {
+                renderSuggestions(fallbackSuggestions, '本地 AI 生成');
+            }
         }).catch(function () {
             if (currentSeq !== aiRequestSeq) return;
-            renderAiResult('AI 已完成初步定位', serviceText, fallbackAdvice || findHint(normalize(search.value)), true);
+            renderSuggestions(fallbackSuggestions, '本地 AI 生成');
         });
-    }
-
-    function refreshIssueCards() {
-        issueCards = Array.prototype.slice.call(repairForm.querySelectorAll('[data-issue-card]'));
-    }
-
-    function selectCard(card, source) {
-        refreshIssueCards();
-        issueCards.forEach(function (x) { x.classList.remove('active'); });
-        card.classList.add('active');
-        if (card.dataset.deviceId && card.dataset.faultId) {
-            deviceSelect.value = card.dataset.deviceId;
-            faultSelect.value = card.dataset.faultId;
-            selectedIssue.textContent = card.dataset.deviceName + ' · ' + card.dataset.faultName;
-        } else {
-            deviceSelect.value = '';
-            faultSelect.value = '';
-            selectedIssue.textContent = card.dataset.deviceName + ' · 平台待补充';
-        }
-        var serviceText = card.dataset.deviceName + ' · ' + card.dataset.faultName;
-        renderAiResult(source || '已匹配服务', serviceText, findHint(normalize(search.value)), true);
-        askDeepSeekText(serviceText, findHint(normalize(search.value)));
-    }
-
-    function createVirtualCard(inferred) {
-        if (!issueGrid || !inferred) return null;
-        if (!virtualCard) {
-            virtualCard = document.createElement('button');
-            virtualCard.type = 'button';
-            virtualCard.className = 'issue-card ai-generated-service';
-            virtualCard.setAttribute('data-issue-card', 'true');
-            virtualCard.addEventListener('click', function () { selectCard(virtualCard, 'AI 推荐的新增服务'); });
-            issueGrid.insertBefore(virtualCard, issueGrid.firstChild);
-        }
-        var parts = inferred.group.service.split(' · ');
-        virtualCard.dataset.deviceName = parts[0];
-        virtualCard.dataset.faultName = parts[1];
-        virtualCard.dataset.deviceId = '';
-        virtualCard.dataset.faultId = '';
-        virtualCard.innerHTML = '<span class="issue-icon">✨</span><b>' + escapeHtml(parts[1]) + '</b><small>' + escapeHtml(parts[0]) + ' · AI 根据你的问题动态推荐</small><em>平台服务目录待确认</em>';
-        virtualCard.hidden = false;
-        refreshIssueCards();
-        return virtualCard;
-    }
-
-    function findPlatformCardFor(inferred) {
-        if (!inferred) return null;
-        var parts = inferred.group.service.split(' · ');
-        var deviceName = normalize(parts[0]);
-        var faultName = normalize(parts[1]);
-        return issueCards.filter(function (card) {
-            return normalize(card.dataset.deviceName).indexOf(deviceName) >= 0 && normalize(card.dataset.faultName).indexOf(faultName) >= 0;
-        })[0] || null;
     }
 
     function runDiagnose() {
-        var query = normalize(search.value);
-        var inferred = inferGroup(query);
-        var platformCard = findPlatformCardFor(inferred);
-        var best = null;
-        var bestScore = -1;
-
-        if (virtualCard) virtualCard.hidden = true;
-        issueCards.forEach(function (card) {
-            if (card === virtualCard) return;
-            var score = scoreCard(card, query);
-            card.hidden = !!query && score <= 0;
-            if (score > bestScore) {
-                best = card;
-                bestScore = score;
-            }
-        });
-
-        if (platformCard) {
-            issueCards.forEach(function (card) { if (card !== platformCard && card !== virtualCard) card.hidden = true; });
-            platformCard.hidden = false;
-            selectCard(platformCard, 'AI 已匹配平台服务');
-        } else if (inferred) {
-            var generated = createVirtualCard(inferred);
-            issueCards.forEach(function (card) { if (card !== generated) card.hidden = true; });
-            selectCard(generated, 'AI 识别到新服务需求');
-        } else if (best && bestScore > 0) {
-            selectCard(best, 'AI 已完成初步定位');
-        } else {
-            issueCards.forEach(function (card) { card.hidden = false; });
-            selectedIssue.textContent = '平台服务类型待确认';
-            askDeepSeekText('平台服务类型待确认', '我还没有匹配到明确服务类型，请补充设备名称、故障现象或报错信息。');
+        var queryText = (search.value || '').trim();
+        if (!queryText) {
+            clearGenerated();
+            selectedIssue.textContent = '等待输入问题';
+            renderAiResult('等待你的问题', '暂未判断', '输入问题后，AI 会生成与问题相关的服务词条。', 'AI 生成服务词条');
+            return;
         }
+        var suggestions = localSuggestions(queryText);
+        renderSuggestions(suggestions, '本地 AI 快速生成');
+        askDeepSeek(suggestions[0].device + ' · ' + suggestions[0].fault, suggestions);
     }
 
-    refreshIssueCards();
-    issueCards.forEach(function (card) {
-        card.addEventListener('click', function () { selectCard(card, '你已选择服务类型'); });
-    });
     repairForm.querySelectorAll('[data-example]').forEach(function (button) {
         button.addEventListener('click', function () {
             search.value = button.dataset.example;
@@ -287,18 +206,17 @@
     });
     if (diagnoseButton) diagnoseButton.addEventListener('click', runDiagnose);
     if (search) search.addEventListener('input', runDiagnose);
-    if (faultSelect && faultSelect.value) {
-        var current = issueCards.filter(function (card) { return card.dataset.faultId === faultSelect.value; })[0];
-        if (current) selectCard(current, '已恢复上次选择');
-    }
+
     repairForm.addEventListener('submit', function (event) {
-        if (!faultSelect.value && issueCards.length) runDiagnose();
         if (!faultSelect.value) {
             event.preventDefault();
-            renderAiResult('还差一步', selectedIssue.textContent || '平台服务类型待确认', '当前问题还没有对应的可预约平台服务。请先选择一个平台已有服务，或联系管理员在基础数据中新增服务类目。', true);
+            runDiagnose();
+            renderAiResult('还差一步', selectedIssue.textContent || '服务类型待确认', '请先从 AI 生成的词条中选择一个“可预约工程师”的服务；如果显示“平台待补充类目”，需要管理员先维护服务目录和工程师技能。', '预约需要平台服务映射');
         }
         if (description && !description.value.trim() && search.value.trim()) {
             description.value = search.value.trim();
         }
     });
+
+    renderAiResult('等待你的问题', '暂未判断', '输入问题后，AI 会生成与问题相关的服务词条，而不是展示固定选项。', 'AI 生成服务词条');
 })();

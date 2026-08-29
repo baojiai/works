@@ -19,8 +19,19 @@ public class AiServlet extends HttpServlet {
             String problem = Web.text(req, "problem");
             String serviceType = Web.text(req, "serviceType");
             if (problem.isEmpty()) throw new IllegalArgumentException("请先输入问题描述");
-            String answer = service.diagnose(problem, serviceType);
-            resp.getWriter().write("{\"ok\":true,\"answer\":\"" + json(answer) + "\"}");
+            DeepSeekService.AiResult result = service.diagnose(problem, serviceType);
+            StringBuilder json = new StringBuilder();
+            json.append("{\"ok\":true,\"answer\":\"").append(json(result.answer)).append("\",\"suggestions\":[");
+            for (int i = 0; i < result.suggestions.size(); i++) {
+                DeepSeekService.Suggestion s = result.suggestions.get(i);
+                if (i > 0) json.append(',');
+                json.append("{\"title\":\"").append(json(s.title))
+                        .append("\",\"device\":\"").append(json(s.device))
+                        .append("\",\"fault\":\"").append(json(s.fault))
+                        .append("\",\"note\":\"").append(json(s.note)).append("\"}");
+            }
+            json.append("]}");
+            resp.getWriter().write(json.toString());
         } catch (Exception e) {
             Throwable cause = e;
             while (cause.getCause() != null) cause = cause.getCause();
