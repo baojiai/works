@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#f6f8fb">
     <title>${empty pageTitle ? '售后维修协同平台' : pageTitle} · RepairFlow</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=8">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=9">
 </head>
 <body class="app-page">
 <div class="app-layout">
@@ -18,14 +18,16 @@
         </a>
         <div class="sidebar-caption">MAIN MENU</div>
         <nav class="side-nav">
-            <a href="${pageContext.request.contextPath}/dashboard"><span class="nav-icon">⌂</span><span>工作台</span></a>
+            <a href="${pageContext.request.contextPath}/dashboard"><span class="nav-icon">台</span><span>工作台</span></a>
+            <c:if test="${sessionScope.user.role == 'CUSTOMER' || sessionScope.user.role == 'ENGINEER'}">
+                <a href="${pageContext.request.contextPath}/customer/request"><span class="nav-icon">修</span><span>我要报修</span></a>
+            </c:if>
             <c:if test="${sessionScope.user.role == 'CUSTOMER'}">
-                <a href="${pageContext.request.contextPath}/customer/request"><span class="nav-icon">＋</span><span>发起报修</span></a>
                 <a href="${pageContext.request.contextPath}/engineer/apply"><span class="nav-icon">证</span><span>工程师认证</span></a>
             </c:if>
             <c:if test="${sessionScope.user.role == 'ENGINEER'}">
-                <a href="${pageContext.request.contextPath}/engineer/schedule"><span class="nav-icon">日</span><span>我的排班</span></a>
-                <a href="${pageContext.request.contextPath}/engineer/profile"><span class="nav-icon">技</span><span>服务档案</span></a>
+                <a href="${pageContext.request.contextPath}/engineer/schedule"><span class="nav-icon">时</span><span>我的排班</span></a>
+                <a href="${pageContext.request.contextPath}/engineer/profile"><span class="nav-icon">技</span><span>工程师档案</span></a>
             </c:if>
             <c:if test="${sessionScope.user.role == 'WAREHOUSE'}">
                 <a href="${pageContext.request.contextPath}/warehouse/requests"><span class="nav-icon">审</span><span>配件审核</span></a>
@@ -45,7 +47,7 @@
             <strong>售后维修闭环</strong>
             <small>预约 · 派工 · 领料 · 验收</small>
         </div>
-        <a class="logout-link" href="${pageContext.request.contextPath}/logout"><span class="nav-icon">↪</span><span>退出登录</span></a>
+        <a class="logout-link" href="${pageContext.request.contextPath}/logout"><span class="nav-icon">出</span><span>退出登录</span></a>
     </aside>
     <div class="sidebar-mask" data-sidebar-mask></div>
     <div class="app-main">
@@ -55,9 +57,9 @@
                 <div><span class="topbar-kicker">REPAIRFLOW</span><strong><c:out value="${empty pageTitle ? '工作台' : pageTitle}"/></strong></div>
             </div>
             <div class="topbar-user">
-                <a class="notification-button" href="${pageContext.request.contextPath}/notifications" aria-label="消息通知">◉</a>
+                <a class="notification-button" href="${pageContext.request.contextPath}/notifications" aria-label="消息通知">●</a>
                 <span class="user-avatar"><c:out value="${sessionScope.user.displayName.substring(0,1)}"/></span>
-                <span class="user-info"><strong><c:out value="${sessionScope.user.displayName}"/></strong><small><c:out value="${sessionScope.user.role}"/></small></span>
+                <span class="user-info"><strong><c:out value="${sessionScope.user.displayName}"/></strong><small><c:out value="${sessionScope.user.roleLabel}"/></small></span>
             </div>
         </header>
         <main class="shell">

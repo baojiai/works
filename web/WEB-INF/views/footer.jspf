@@ -2,6 +2,6 @@
         <footer><span>RepairFlow 售后维修协同平台</span><span>课程设计演示系统 · 核心业务可离线运行</span></footer>
     </div>
 </div>
-<script src="${pageContext.request.contextPath}/assets/app.js?v=8"></script>
+<script src="${pageContext.request.contextPath}/assets/app.js?v=9"></script>
 </body>
 </html>

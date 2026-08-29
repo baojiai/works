@@ -45,14 +45,14 @@ public class CustomerService {
             "JOIN engineer_schedule es ON es.engineer_id=ep.engineer_id AND es.service_date>=rr.expected_date AND es.status='AVAILABLE' "+
             "JOIN standard_time_slot st ON st.slot_id=es.slot_id JOIN fault_type ft ON ft.fault_type_id=esk.fault_type_id "+
             "WHERE rr.repair_request_id=? AND rr.customer_id=? AND rr.status IN ('OPEN','BOOKED') AND ep.qualification_status='APPROVED' AND ep.employment_status='ACTIVE' AND u.status='ACTIVE' "+
-            "AND (rr.expected_slot_id IS NULL OR rr.expected_slot_id=es.slot_id) ORDER BY "+order;
+            "AND ep.engineer_id<>rr.customer_id AND (rr.expected_slot_id IS NULL OR rr.expected_slot_id=es.slot_id) ORDER BY "+order;
         try(Connection c=Database.open()) { return Database.query(c,sql,requestId,customerId); }
     }
 
     public long book(final long customerId,final long requestId,final long engineerId,final long scheduleId,final long replacesId) throws Exception {
         final long[] created={0};
         Database.tx(c->{
-            Map<String,Object> match=Database.one(c,"SELECT es.schedule_id,rr.status request_status FROM repair_request rr JOIN engineer_skill sk ON sk.fault_type_id=rr.fault_type_id AND sk.engineer_id=? JOIN engineer_service_area ea ON ea.service_area_id=rr.service_area_id AND ea.engineer_id=? JOIN engineer_profile ep ON ep.engineer_id=? JOIN system_user u ON u.user_id=ep.engineer_id JOIN engineer_schedule es ON es.schedule_id=? AND es.engineer_id=? WHERE rr.repair_request_id=? AND rr.customer_id=? AND rr.status IN ('OPEN','BOOKED') AND es.status='AVAILABLE' AND es.service_date>=CURRENT_DATE AND ep.qualification_status='APPROVED' AND ep.employment_status='ACTIVE' AND u.status='ACTIVE'",engineerId,engineerId,engineerId,scheduleId,engineerId,requestId,customerId);
+            Map<String,Object> match=Database.one(c,"SELECT es.schedule_id,rr.status request_status FROM repair_request rr JOIN engineer_skill sk ON sk.fault_type_id=rr.fault_type_id AND sk.engineer_id=? JOIN engineer_service_area ea ON ea.service_area_id=rr.service_area_id AND ea.engineer_id=? JOIN engineer_profile ep ON ep.engineer_id=? JOIN system_user u ON u.user_id=ep.engineer_id JOIN engineer_schedule es ON es.schedule_id=? AND es.engineer_id=? WHERE rr.repair_request_id=? AND rr.customer_id=? AND rr.customer_id<>ep.engineer_id AND rr.status IN ('OPEN','BOOKED') AND es.status='AVAILABLE' AND es.service_date>=CURRENT_DATE AND ep.qualification_status='APPROVED' AND ep.employment_status='ACTIVE' AND u.status='ACTIVE'",engineerId,engineerId,engineerId,scheduleId,engineerId,requestId,customerId);
             if(match==null) throw new IllegalStateException("工程师或时段已失效，请重新选择");
             if("BOOKED".equals(match.get("request_status")) && replacesId<=0) throw new IllegalStateException("该维修需求已有有效预约，请通过改约流程重新选择");
             if(Database.update(c,"UPDATE engineer_schedule SET status='OCCUPIED',version_no=version_no+1 WHERE schedule_id=? AND status='AVAILABLE'",scheduleId)!=1) throw new IllegalStateException("该时段刚刚被占用，请重新选择");
@@ -81,9 +81,12 @@ public class CustomerService {
     }
 
     public List<Map<String,Object>> appointments(SessionUser user) throws Exception {
-        String where=user.hasRole("CUSTOMER")?"a.customer_id=?":user.hasRole("ENGINEER")?"a.engineer_id=?":"1=?";
-        String sql="SELECT a.appointment_id,a.appointment_no,a.request_id,a.status,a.created_at,u.display_name engineer_name,cu.display_name customer_name,es.service_date,st.name slot_name,st.start_time,rr.service_address,ft.name fault_name,ro.order_id,ro.order_status FROM appointment a JOIN system_user u ON u.user_id=a.engineer_id JOIN system_user cu ON cu.user_id=a.customer_id JOIN engineer_schedule es ON es.schedule_id=a.schedule_id JOIN standard_time_slot st ON st.slot_id=es.slot_id JOIN repair_request rr ON rr.repair_request_id=a.request_id JOIN fault_type ft ON ft.fault_type_id=rr.fault_type_id JOIN repair_order ro ON ro.appointment_id=a.appointment_id WHERE "+where+" ORDER BY a.created_at DESC";
-        try(Connection c=Database.open()){ return Database.query(c,sql,user.hasRole("CUSTOMER")||user.hasRole("ENGINEER")?user.getId():1); }
+        String where="ENGINEER".equals(user.getRole())?"(a.customer_id=? OR a.engineer_id=?)":user.hasRole("CUSTOMER")?"a.customer_id=?":"1=?";
+        String sql="SELECT a.appointment_id,a.appointment_no,a.request_id,a.customer_id,a.engineer_id,a.status,a.created_at,u.display_name engineer_name,cu.display_name customer_name,es.service_date,st.name slot_name,st.start_time,rr.service_address,ft.name fault_name,ro.order_id,ro.customer_id order_customer_id,ro.engineer_id order_engineer_id,ro.order_status FROM appointment a JOIN system_user u ON u.user_id=a.engineer_id JOIN system_user cu ON cu.user_id=a.customer_id JOIN engineer_schedule es ON es.schedule_id=a.schedule_id JOIN standard_time_slot st ON st.slot_id=es.slot_id JOIN repair_request rr ON rr.repair_request_id=a.request_id JOIN fault_type ft ON ft.fault_type_id=rr.fault_type_id JOIN repair_order ro ON ro.appointment_id=a.appointment_id WHERE "+where+" ORDER BY a.created_at DESC";
+        try(Connection c=Database.open()){
+            if("ENGINEER".equals(user.getRole())) return Database.query(c,sql,user.getId(),user.getId());
+            return Database.query(c,sql,user.hasRole("CUSTOMER")?user.getId():1);
+        }
     }
 
     public void cancel(long customerId,long appointmentId,String reason) throws Exception {
@@ -104,16 +107,21 @@ public class CustomerService {
     }
 
     public List<Map<String,Object>> orders(SessionUser user) throws Exception {
-        String where=user.hasRole("CUSTOMER")?"ro.customer_id=?":user.hasRole("ENGINEER")?"ro.engineer_id=?":"1=?";
-        String sql="SELECT ro.order_id,ro.order_no,ro.order_status,ro.created_at,ro.started_at,ro.submitted_at,ro.completed_at,a.appointment_no,eu.display_name engineer_name,cu.display_name customer_name,ft.name fault_name,rr.service_address FROM repair_order ro JOIN appointment a ON a.appointment_id=ro.appointment_id JOIN repair_request rr ON rr.repair_request_id=a.request_id JOIN fault_type ft ON ft.fault_type_id=rr.fault_type_id JOIN system_user eu ON eu.user_id=ro.engineer_id JOIN system_user cu ON cu.user_id=ro.customer_id WHERE "+where+" ORDER BY ro.created_at DESC";
-        try(Connection c=Database.open()){ return Database.query(c,sql,user.hasRole("CUSTOMER")||user.hasRole("ENGINEER")?user.getId():1); }
+        String where="ENGINEER".equals(user.getRole())?"(ro.customer_id=? OR ro.engineer_id=?)":user.hasRole("CUSTOMER")?"ro.customer_id=?":"1=?";
+        String sql="SELECT ro.order_id,ro.order_no,ro.customer_id,ro.engineer_id,ro.order_status,ro.created_at,ro.started_at,ro.submitted_at,ro.completed_at,a.appointment_no,eu.display_name engineer_name,cu.display_name customer_name,ft.name fault_name,rr.service_address FROM repair_order ro JOIN appointment a ON a.appointment_id=ro.appointment_id JOIN repair_request rr ON rr.repair_request_id=a.request_id JOIN fault_type ft ON ft.fault_type_id=rr.fault_type_id JOIN system_user eu ON eu.user_id=ro.engineer_id JOIN system_user cu ON cu.user_id=ro.customer_id WHERE "+where+" ORDER BY ro.created_at DESC";
+        try(Connection c=Database.open()){
+            if("ENGINEER".equals(user.getRole())) return Database.query(c,sql,user.getId(),user.getId());
+            return Database.query(c,sql,user.hasRole("CUSTOMER")?user.getId():1);
+        }
     }
 
     public Map<String,Object> orderDetail(SessionUser user,long orderId) throws Exception {
         try(Connection c=Database.open()){
-            String access=user.hasRole("CUSTOMER")?"ro.customer_id=?":user.hasRole("ENGINEER")?"ro.engineer_id=?":"1=?";
+            String access="ENGINEER".equals(user.getRole())?"(ro.customer_id=? OR ro.engineer_id=?)":user.hasRole("CUSTOMER")?"ro.customer_id=?":user.hasRole("ENGINEER")?"ro.engineer_id=?":"1=?";
             Map<String,Object> result=new HashMap<>();
-            Map<String,Object> order=Database.one(c,"SELECT ro.*,a.appointment_no,rr.fault_description,rr.service_address,rr.contact_phone,dt.name device_name,ft.name fault_name,eu.display_name engineer_name,cu.display_name customer_name FROM repair_order ro JOIN appointment a ON a.appointment_id=ro.appointment_id JOIN repair_request rr ON rr.repair_request_id=a.request_id JOIN device_type dt ON dt.device_type_id=rr.device_type_id JOIN fault_type ft ON ft.fault_type_id=rr.fault_type_id JOIN system_user eu ON eu.user_id=ro.engineer_id JOIN system_user cu ON cu.user_id=ro.customer_id WHERE ro.order_id=? AND "+access,orderId,user.hasRole("CUSTOMER")||user.hasRole("ENGINEER")?user.getId():1);
+            Map<String,Object> order="ENGINEER".equals(user.getRole())
+                ? Database.one(c,"SELECT ro.*,a.appointment_no,rr.fault_description,rr.service_address,rr.contact_phone,dt.name device_name,ft.name fault_name,eu.display_name engineer_name,cu.display_name customer_name FROM repair_order ro JOIN appointment a ON a.appointment_id=ro.appointment_id JOIN repair_request rr ON rr.repair_request_id=a.request_id JOIN device_type dt ON dt.device_type_id=rr.device_type_id JOIN fault_type ft ON ft.fault_type_id=rr.fault_type_id JOIN system_user eu ON eu.user_id=ro.engineer_id JOIN system_user cu ON cu.user_id=ro.customer_id WHERE ro.order_id=? AND "+access,orderId,user.getId(),user.getId())
+                : Database.one(c,"SELECT ro.*,a.appointment_no,rr.fault_description,rr.service_address,rr.contact_phone,dt.name device_name,ft.name fault_name,eu.display_name engineer_name,cu.display_name customer_name FROM repair_order ro JOIN appointment a ON a.appointment_id=ro.appointment_id JOIN repair_request rr ON rr.repair_request_id=a.request_id JOIN device_type dt ON dt.device_type_id=rr.device_type_id JOIN fault_type ft ON ft.fault_type_id=rr.fault_type_id JOIN system_user eu ON eu.user_id=ro.engineer_id JOIN system_user cu ON cu.user_id=ro.customer_id WHERE ro.order_id=? AND "+access,orderId,user.hasRole("CUSTOMER")||user.hasRole("ENGINEER")?user.getId():1);
             if(order==null) throw new SecurityException("无权查看该工单");
             result.put("order",order);
             result.put("records",Database.query(c,"SELECT rr.*,u.display_name engineer_name FROM repair_record rr JOIN system_user u ON u.user_id=rr.engineer_id WHERE rr.order_id=? ORDER BY rr.created_at",orderId));
