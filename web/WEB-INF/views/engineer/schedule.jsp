@@ -1,5 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %><c:set var="pageTitle" value="排班管理"/><%@ include file="../header.jspf" %>
-<div class="page-head"><div><span class="eyebrow">AVAILABILITY</span><h1>排班与可预约时段</h1><p>只能发布系统预设的标准时段；已占用时段不能直接关闭。</p></div></div>
+<div class="page-head"><div><span class="eyebrow">可预约时段</span><h1>排班与可预约时段</h1><p>只能发布系统预设的标准时段；已占用时段不能直接关闭。</p></div></div>
 <section class="card border-0 shadow-sm mb-3">
     <div class="card-body p-4">
         <form method="post" class="row g-3 align-items-end">
@@ -37,7 +37,7 @@
                         <td><b><c:out value="${x.service_date}"/></b></td>
                         <td><c:out value="${x.slot_name}"/></td>
                         <td><c:out value="${x.start_time}"/>—<c:out value="${x.end_time}"/></td>
-                        <td><span class="badge ${x.status == 'AVAILABLE' ? 'text-bg-success' : (x.status == 'OCCUPIED' || x.status == 'BOOKED' ? 'text-bg-primary' : 'text-bg-secondary')}"><c:out value="${x.status}"/></span></td>
+                        <td><span class="badge ${x.status == 'AVAILABLE' ? 'text-bg-success' : (x.status == 'OCCUPIED' || x.status == 'BOOKED' ? 'text-bg-primary' : 'text-bg-secondary')}"><c:choose><c:when test="${x.status == 'AVAILABLE'}">可预约</c:when><c:when test="${x.status == 'OCCUPIED' || x.status == 'BOOKED'}">已占用</c:when><c:when test="${x.status == 'CLOSED'}">已关闭</c:when><c:otherwise>不可预约</c:otherwise></c:choose></span></td>
                         <td>
                             <c:if test="${x.status == 'AVAILABLE'}">
                                 <form method="post" action="${pageContext.request.contextPath}/engineer/schedule/close" data-confirm="确认关闭这个空闲时段？" class="d-flex gap-2 flex-wrap">

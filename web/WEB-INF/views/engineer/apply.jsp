@@ -1,19 +1,19 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %><c:set var="pageTitle" value="工程师认证"/><%@ include file="../header.jspf" %>
-<div class="page-head"><div><span class="eyebrow">ENGINEER CERTIFICATION</span><h1>申请成为平台工程师</h1><p>通过认证后可以维护服务档案、发布排班，并在维修工单中申请配件。</p></div></div>
+<div class="page-head"><div><span class="eyebrow">工程师认证</span><h1>申请成为平台工程师</h1><p>通过认证后可以维护服务档案、发布排班，并在维修工单中申请配件。</p></div></div>
 <c:if test="${not empty error}"><div class="alert alert-danger d-flex align-items-center gap-2"><span>!</span><c:out value="${error}"/></div></c:if>
 <c:if test="${not empty latest}">
     <section class="card border-0 shadow-sm mb-3">
         <div class="card-body p-4">
-            <span class="eyebrow">LATEST APPLICATION</span>
+            <span class="eyebrow">最近申请</span>
             <h2 class="h5 mt-1 mb-2">最近一次申请</h2>
-            <p class="mb-0">状态：<span class="badge ${latest.status == 'APPROVED' ? 'text-bg-success' : (latest.status == 'REJECTED' ? 'text-bg-danger' : 'text-bg-warning')}"><c:out value="${latest.status}"/></span> · 提交时间：<c:out value="${latest.created_at}"/></p>
+            <p class="mb-0">状态：<span class="badge ${latest.status == 'APPROVED' ? 'text-bg-success' : (latest.status == 'REJECTED' ? 'text-bg-danger' : 'text-bg-warning')}"><c:choose><c:when test="${latest.status == 'APPROVED'}">已通过</c:when><c:when test="${latest.status == 'REJECTED'}">已驳回</c:when><c:otherwise>待审核</c:otherwise></c:choose></span> · 提交时间：<c:out value="${latest.created_at}"/></p>
             <c:if test="${not empty latest.review_comment}"><p class="note mb-0 mt-2"><b>审核意见：</b><c:out value="${latest.review_comment}"/></p></c:if>
         </div>
     </section>
 </c:if>
 <form method="post" class="card border-0 shadow-sm">
     <div class="card-body p-4">
-        <span class="eyebrow">BASIC MATERIALS</span>
+        <span class="eyebrow">认证资料</span>
         <h2 class="h5 mt-1 mb-3">认证资料</h2>
         <div class="row g-3">
             <div class="col-12 col-md-6">
@@ -39,7 +39,7 @@
                 <div class="row g-2">
                     <c:forEach items="${faults}" var="x">
                         <div class="col-12 col-md-6 col-xl-4">
-                            <div class="form-check border rounded p-2 bg-white">
+                            <div class="form-check choice-block">
                                 <input class="form-check-input" type="checkbox" name="faultId" value="${x.fault_type_id}" id="fault-${x.fault_type_id}">
                                 <label class="form-check-label" for="fault-${x.fault_type_id}"><c:out value="${x.device_name}"/> · <c:out value="${x.name}"/></label>
                             </div>

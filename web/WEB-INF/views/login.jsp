@@ -5,10 +5,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="theme-color" content="#f6f8fb">
+    <meta name="theme-color" content="#f7f8fc">
     <title><c:out value="${editionName}"/> · RepairFlow</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=14">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=17">
 </head>
 <body class="login-page edition-${edition}">
 <div class="login-shell">
@@ -21,14 +21,14 @@
                 <p><c:out value="${editionLead}"/></p>
             </div>
             <div class="login-illustration">
-                <img src="${pageContext.request.contextPath}/assets/images/hero-service.png" alt="AI 售后维修服务平台插画">
+                <img src="${pageContext.request.contextPath}/assets/images/hero-service.png" alt="售后维修服务平台插画">
                 <div class="login-visual-card">
-                    <b>AI 智能诊断</b>
-                    <span>搜索问题 → 生成服务词条 → 匹配工程师</span>
+                    <b>快速报修</b>
+                    <span>填写故障 → 提交报修 → 匹配工程师</span>
                 </div>
             </div>
             <div class="edition-grid">
-                <a class="${edition == 'client' ? 'active' : ''}" href="${pageContext.request.contextPath}/client/login"><b>客户版</b><span>手机号注册、AI 报修预约、工程师认证申请</span></a>
+                <a class="${edition == 'client' ? 'active' : ''}" href="${pageContext.request.contextPath}/client/login"><b>客户版</b><span>手机号注册、在线报修预约、工程师认证申请</span></a>
                 <a class="${edition == 'warehouse' ? 'active' : ''}" href="${pageContext.request.contextPath}/warehouse/login"><b>区域仓库版</b><span>配件审核、出库退回、库存盘点</span></a>
                 <a class="${edition == 'admin' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/login"><b>平台管理端</b><span>认证审核、用户管理、规则与异常处理</span></a>
             </div>
@@ -58,6 +58,6 @@
     </section>
 </div>
     <script src="${pageContext.request.contextPath}/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="${pageContext.request.contextPath}/assets/app.js?v=13"></script>
+    <script src="${pageContext.request.contextPath}/assets/app.js?v=15"></script>
 </body>
 </html>

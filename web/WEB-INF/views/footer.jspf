@@ -4,6 +4,6 @@
     </div>
 </div>
 <script src="${pageContext.request.contextPath}/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-<script src="${pageContext.request.contextPath}/assets/app.js?v=13"></script>
+<script src="${pageContext.request.contextPath}/assets/app.js?v=15"></script>
 </body>
 </html>

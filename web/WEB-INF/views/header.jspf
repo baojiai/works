@@ -5,10 +5,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="theme-color" content="#f6f8fb">
+    <meta name="theme-color" content="#f7f8fc">
     <title>${empty pageTitle ? '售后维修协同平台' : pageTitle} · RepairFlow</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=13">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=16">
 </head>
 <body class="app-page">
 <div class="app-layout">
@@ -17,7 +17,7 @@
             <span class="brand-mark">R</span>
             <span class="brand-copy"><strong>RepairFlow</strong><small>售后维修协同平台</small></span>
         </a>
-        <div class="sidebar-caption">MAIN MENU</div>
+        <div class="sidebar-caption">主菜单</div>
         <nav class="side-nav">
             <a href="${pageContext.request.contextPath}/dashboard"><span class="nav-icon">台</span><span>工作台</span></a>
             <c:if test="${sessionScope.user.role == 'CUSTOMER' || sessionScope.user.role == 'ENGINEER'}">
@@ -44,7 +44,7 @@
             <a href="${pageContext.request.contextPath}/notifications"><span class="nav-icon">信</span><span>消息通知</span></a>
         </nav>
         <div class="sidebar-help">
-            <span>SERVICE OPS</span>
+            <span>服务协同</span>
             <strong>售后维修闭环</strong>
             <small>预约 · 派工 · 领料 · 验收</small>
         </div>

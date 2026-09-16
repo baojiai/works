@@ -41,7 +41,6 @@ public class CustomerController {
     public String submitRequest(@RequestParam(defaultValue = "0") String deviceId,
                                 @RequestParam(defaultValue = "0") String faultId,
                                 @RequestParam(defaultValue = "0") String areaId,
-                                @RequestParam(defaultValue = "") String problemQuery,
                                 @RequestParam(defaultValue = "") String description,
                                 @RequestParam(defaultValue = "") String address,
                                 @RequestParam(defaultValue = "") String phone,
@@ -52,9 +51,7 @@ public class CustomerController {
         try {
             SessionUser user = customer(session);
             String dateText = text(expectedDate);
-            String query = text(problemQuery);
             String details = text(description);
-            if (!query.isEmpty()) details = "用户搜索问题：" + query + "\n补充描述：" + details;
             long selectedSlot = id(slotId);
             long requestId = service.createRequest(user.getId(), id(deviceId), id(faultId), id(areaId), details,
                     text(address), text(phone), dateText.isEmpty() ? null : Date.valueOf(dateText),

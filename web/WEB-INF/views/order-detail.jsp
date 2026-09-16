@@ -17,7 +17,7 @@
 <div class="order-detail-page">
 <div class="page-head">
     <div>
-        <span class="eyebrow">SERVICE ORDER</span>
+        <span class="eyebrow">服务工单</span>
         <h1><c:out value="${order.order_no}"/></h1>
         <p><c:out value="${order.device_name}"/> · <c:out value="${order.fault_name}"/> · <span class="badge ${orderStatusClass}"><c:out value="${orderStatusLabel}"/></span></p>
     </div>

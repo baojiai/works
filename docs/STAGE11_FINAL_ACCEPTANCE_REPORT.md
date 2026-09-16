@@ -14,7 +14,6 @@
 - MySQL 8.4.8（满足 8.0.16+）、InnoDB、utf8mb4
 - Apache Tomcat 9.0.121
 - Maven 3.9.13
-- DeepSeek API（可选）
 
 源码和文档未宣称 Spring Boot、Vue、React、Tomcat 10、Jakarta Servlet 或 H2 正式数据库。
 
@@ -41,13 +40,13 @@ database/
 db/
   schema-h2.sql  seed-h2.sql
 scripts/
-  build.ps1  check.ps1  run.ps1  stop.ps1  run-with-deepseek.ps1
+  build.ps1  check.ps1  run.ps1  stop.ps1
 tests/probes/
 docs/
   PUBLIC_DEPLOY.md
 ```
 
-统计：9 个 Controller、9 个 Service、20 个 Mapper 接口、20 个 Mapper XML、19 个 JSP/JSPF、7 个探针。保留既有 `src/`、`web/` 布局，未做 Maven 目录迁移。
+统计：8 个 Controller、8 个 Service、20 个 Mapper 接口、20 个 Mapper XML、19 个 JSP/JSPF、7 个探针。保留既有 `src/`、`web/` 布局，未做 Maven 目录迁移。
 
 ## 3. 生产代码静态扫描
 
@@ -99,13 +98,13 @@ docs/
 
 使用该项目的 `CATALINA_HOME`/`CATALINA_BASE` 调用 Tomcat shutdown。Tomcat正常退出，8080释放；未按进程名批量终止 Java，验收时未误杀其他 Java 进程。
 
-## 12. DeepSeek脚本
+## 12. 启动脚本
 
-`run-with-deepseek.ps1` 优先读取 `DEEPSEEK_API_KEY`；未设置时使用 SecureString输入，转换后仅写入当前进程环境，并复用 `stop.ps1`/`run.ps1`。Key未进入源码、properties、README实际值或日志；未进行付费API调用。
+项目通过 `build.ps1`、`run.ps1` 和 `stop.ps1` 完成构建、启动与停止，不需要额外的外部服务配置。
 
 ## 13. WAR依赖
 
-WAR包含 Spring 5.3.39、MyBatis/MyBatis-Spring、MySQL Connector/J 8.4.0、JSTL、本地Bootstrap 5.3.8、19个JSP/JSPF、20个Mapper XML、Spring XML及44个业务class。WAR不含 H2 JAR/H2 SQL、`javax.servlet-api`、测试探针、测试截图、历史数据库文件、数据库密码或DeepSeek Key。
+WAR包含 Spring 5.3.39、MyBatis/MyBatis-Spring、MySQL Connector/J 8.4.0、JSTL、本地Bootstrap 5.3.8、19个JSP/JSPF、20个Mapper XML、Spring XML及40个业务class。WAR不含 H2 JAR/H2 SQL、`javax.servlet-api`、测试探针、测试截图、历史数据库文件或数据库密码。
 
 ## 14. 默认演示账号
 
@@ -114,11 +113,11 @@ WAR包含 Spring 5.3.39、MyBatis/MyBatis-Spring、MySQL Connector/J 8.4.0、JST
 | 仓库管理员 | `warehouse` | `123456` |
 | 系统管理员 | `admin` | `123456` |
 
-客户通过注册创建；工程师通过客户注册、提交申请、管理员审核后获得角色。以上仅为项目公开演示账号，不包含MySQL或AI凭据。
+客户通过注册创建；工程师通过客户注册、提交申请、管理员审核后获得角色。以上仅为项目公开演示账号，不包含 MySQL 或外部服务凭据。
 
 ## 15. 客户最终链
 
-HTTP验收通过：注册、登录、报修、AI未配置Key提示、工程师候选、预约、预约列表、工单详情、验收、评价、通知及全部已读。最终工单为 COMPLETED，预约为 FULFILLED，验收与评价各1条。
+HTTP验收通过：注册、登录、报修、工程师候选、预约、预约列表、工单详情、验收、评价、通知及全部已读。最终工单为 COMPLETED，预约为 FULFILLED，验收与评价各1条。
 
 ## 16. 工程师最终链
 
@@ -146,7 +145,7 @@ Bootstrap bundle本地资源存在并标识5.3.8；JSP无CDN依赖。`.app-btn`�
 
 ## 21. 敏感信息扫描
 
-全项目复扫未发现私钥、`sk-`密钥、静态Bearer Token、真实DeepSeek Key或源码/文档数据库密码。发现 `.claude/settings.local.json` 两条历史命令曾嵌入数据库密码，已替换为 `$APP_DB_PASSWORD` 引用，并将 `.claude/` 加入 `.gitignore`；未在本报告输出该值。
+全项目复扫未发现私钥、`sk-`密钥、静态 Bearer Token 或源码/文档数据库密码。发现 `.claude/settings.local.json` 两条历史命令曾嵌入数据库密码，已替换为 `$APP_DB_PASSWORD` 引用，并将 `.claude/` 加入 `.gitignore`；未在本报告输出该值。
 
 ## 22. 测试数据清理
 
@@ -158,11 +157,11 @@ Bootstrap bundle本地资源存在并标识5.3.8；JSP无CDN依赖。`.app-btn`�
 
 ## 24. README
 
-已逐项核对项目简介、技术栈、环境要求、MySQL初始化、四个APP_DB变量、Maven构建、Tomcat运行/停止、DeepSeek可选配置、默认演示账号和项目结构；与源码和脚本一致，无过时栈声明。
+已逐项核对项目简介、技术栈、环境要求、MySQL初始化、四个 APP_DB 变量、Maven构建、Tomcat运行/停止、默认演示账号和项目结构；与源码和脚本一致，无过时栈声明。
 
 ## 25. PUBLIC_DEPLOY
 
-已核对环境、SQL、环境变量、build、run、访问和stop。修正应用账号示例为 `after_sales_app`，明确DeepSeek为可选，并补充Windows/Linux停止Tomcat命令。新接手者无需依赖开发者隐含知识即可部署。
+已核对环境、SQL、环境变量、build、run、访问和 stop。修正应用账号示例为 `after_sales_app`，并补充 Windows/Linux 停止 Tomcat 命令。新接手者无需依赖开发者隐含知识即可部署。
 
 ## 26. 最终交付文件清单
 
