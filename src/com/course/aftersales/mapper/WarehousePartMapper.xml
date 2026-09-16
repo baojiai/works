@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.WarehousePartMapper">
+    <select id="findRequestItemsWithPartDetails" resultType="map">
+        SELECT i.*,p.part_code,p.name part_name,p.model,p.unit,inv.available_quantity,inv.locked_quantity
+        FROM part_request_item i JOIN part p ON p.part_id=i.part_id
+        JOIN part_inventory inv ON inv.part_id=i.part_id
+        ORDER BY i.part_request_id,i.item_id
+    </select>
+    <select id="findInventoryParts" resultType="map">
+        SELECT p.*,i.total_quantity,i.available_quantity,i.locked_quantity,i.issued_quantity,i.warning_threshold
+        FROM part p JOIN part_inventory i ON i.part_id=p.part_id ORDER BY p.name
+    </select>
+</mapper>

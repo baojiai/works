@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.AuthMapper">
+
+    <select id="findUserByAccount" resultType="map">
+        SELECT user_id, username, display_name, role_type, password_hash, status
+        FROM system_user
+        WHERE username = #{account} OR phone = #{account}
+    </select>
+
+    <insert id="insertLoginLog">
+        INSERT INTO operation_log(
+            user_id, operation_type, business_type, business_id, description, created_at
+        ) VALUES (
+            #{userId}, 'LOGIN', 'USER', #{userId}, '登录系统', CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <select id="findExistingUserId" resultType="long">
+        SELECT user_id
+        FROM system_user
+        WHERE phone = #{phone} OR username = #{phone}
+    </select>
+
+    <insert id="insertUser" parameterType="map"
+            useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO system_user(
+            username, password_hash, display_name, phone, role_type, status
+        ) VALUES (
+            #{phone}, #{passwordHash}, #{displayName}, #{phone}, 'CUSTOMER', 'ACTIVE'
+        )
+    </insert>
+
+    <insert id="insertCustomerProfile">
+        INSERT INTO customer_profile(customer_id, address)
+        VALUES (#{userId}, '')
+    </insert>
+
+    <insert id="insertRegisterLog">
+        INSERT INTO operation_log(
+            user_id, operation_type, business_type, business_id, description
+        ) VALUES (
+            #{userId}, 'REGISTER', 'USER', #{userId}, '手机号注册客户账号'
+        )
+    </insert>
+
+</mapper>

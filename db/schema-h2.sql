@@ -1,3 +1,4 @@
+-- LEGACY/DEV REFERENCE ONLY. 正式数据库唯一入口为 database/after_sales.sql；本文件不参与正式构建或部署。
 CREATE TABLE system_user (
  user_id BIGINT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(50) NOT NULL UNIQUE, password_hash CHAR(64) NOT NULL,
  display_name VARCHAR(80) NOT NULL, phone VARCHAR(30) UNIQUE, role_type VARCHAR(20) NOT NULL, status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',

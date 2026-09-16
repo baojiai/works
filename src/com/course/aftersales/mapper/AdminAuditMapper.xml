@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.AdminAuditMapper">
+    <update id="updateQualification">UPDATE engineer_profile SET qualification_status=#{status} WHERE engineer_id=#{engineerId}</update>
+    <insert id="insertOperationLog">INSERT INTO operation_log(user_id,operation_type,business_type,business_id,description) VALUES(#{userId},#{operation},#{businessType},#{businessId},#{description})</insert>
+</mapper>

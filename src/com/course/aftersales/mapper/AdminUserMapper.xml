@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.AdminUserMapper">
+    <select id="findUsers" resultType="map">
+        SELECT u.*,ep.qualification_status,ep.employment_status
+        FROM system_user u LEFT JOIN engineer_profile ep ON ep.engineer_id=u.user_id
+        ORDER BY u.user_id
+    </select>
+    <update id="updateUserStatus">UPDATE system_user SET status=#{status} WHERE user_id=#{userId}</update>
+    <insert id="insertOperationLog">INSERT INTO operation_log(user_id,operation_type,business_type,business_id,description) VALUES(#{userId},#{operation},#{businessType},#{businessId},#{description})</insert>
+</mapper>

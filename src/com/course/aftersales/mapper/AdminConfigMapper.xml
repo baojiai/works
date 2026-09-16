@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.AdminConfigMapper">
+    <select id="findConfigs" resultType="map">SELECT sc.*,u.display_name updated_name FROM system_config sc LEFT JOIN system_user u ON u.user_id=sc.updated_by ORDER BY sc.config_key</select>
+    <select id="findConfigValue" resultType="string">SELECT config_value FROM system_config WHERE config_key=#{configKey}</select>
+    <update id="updateConfig">UPDATE system_config SET config_value=#{configValue},updated_by=#{adminId},updated_at=CURRENT_TIMESTAMP WHERE config_key=#{configKey}</update>
+    <insert id="insertConfig">INSERT INTO system_config(config_key,config_value,description,updated_by) VALUES(#{configKey},#{configValue},#{description},#{adminId})</insert>
+    <insert id="insertOperationLog">INSERT INTO operation_log(user_id,operation_type,business_type,business_id,description) VALUES(#{userId},#{operation},#{businessType},#{businessId},#{description})</insert>
+</mapper>

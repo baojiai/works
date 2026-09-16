@@ -1,11 +1,14 @@
 package com.course.aftersales.service;
 
+import org.springframework.stereotype.Service;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+@Service
 public class DeepSeekService {
     private static final String DEFAULT_URL = "https://api.deepseek.com/chat/completions";
     private static final String DEFAULT_MODEL = "deepseek-v4-flash";

@@ -32,17 +32,23 @@ MySQL 8
 
 ## 1. 在本机打包
 
-在项目目录执行：
+在项目目录执行（需本机安装 Maven）：
 
 ```powershell
-cd E:\软件课程设计\after-sales-repair-system
+cd <项目目录>
+mvn clean package
+```
+
+或使用包装脚本：
+
+```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 ```
 
 打包成功后会生成：
 
 ```text
-E:\软件课程设计\after-sales-repair-system\build\after-sales.war
+<项目目录>\target\after-sales.war
 ```
 
 把这个文件上传到服务器的 Tomcat：
@@ -59,30 +65,33 @@ Tomcat 启动后会自动解压为：
 
 ## 2. 初始化 MySQL 数据库
 
-在服务器 MySQL 中创建数据库：
+在服务器 MySQL 8.0.16+ 中执行项目正式建库脚本（独立完整，包含建库、29 张表与种子数据）：
+
+```bash
+mysql -u <管理员用户> -p < database/after_sales.sql
+```
+
+脚本会创建 `after_sales` 数据库（utf8mb4 / InnoDB）并写入种子账号与基础数据。
+
+建议为应用创建专用账号并只授予 after_sales 库权限：
 
 ```sql
-CREATE DATABASE after_sales DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'after_sales_app'@'localhost' IDENTIFIED BY '<强密码>';
+GRANT ALL PRIVILEGES ON after_sales.* TO 'after_sales_app'@'localhost';
+FLUSH PRIVILEGES;
 ```
 
-然后依次执行项目中的脚本：
-
-```text
-db/schema-mysql.sql
-db/seed-mysql.sql
-```
-
-注意：公网多人使用时不建议继续用本地 H2 文件数据库。H2 更适合课程设计单机演示；MySQL 更适合多人同时访问。
+项目正式数据库为 MySQL 8；不再使用本地 H2 文件数据库。
 
 ## 3. 配置服务器环境变量
 
-启动 Tomcat 前，需要配置数据库和 DeepSeek：
+启动 Tomcat 前必须配置数据库；DeepSeek 配置为可选项，未配置 Key 时仅 AI 诊断不可用：
 
 ### Windows Server 示例
 
 ```powershell
 $env:APP_DB_URL='jdbc:mysql://服务器内网或本机地址:3306/after_sales?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai'
-$env:APP_DB_USER='after_sales_user'
+$env:APP_DB_USER='after_sales_app'
 $env:APP_DB_PASSWORD='你的数据库密码'
 $env:APP_DB_DRIVER='com.mysql.cj.jdbc.Driver'
 $env:DEEPSEEK_API_KEY='你的 DeepSeek API Key'
@@ -93,7 +102,7 @@ $env:DEEPSEEK_MODEL='deepseek-v4-flash'
 
 ```bash
 export APP_DB_URL='jdbc:mysql://127.0.0.1:3306/after_sales?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai'
-export APP_DB_USER='after_sales_user'
+export APP_DB_USER='after_sales_app'
 export APP_DB_PASSWORD='你的数据库密码'
 export APP_DB_DRIVER='com.mysql.cj.jdbc.Driver'
 export DEEPSEEK_API_KEY='你的 DeepSeek API Key'
@@ -128,6 +137,20 @@ http://服务器公网IP:8080/after-sales/admin/login
 
 ```text
 https://你的域名/after-sales/client/login
+```
+
+停止 Tomcat：
+
+Windows：
+
+```powershell
+.\bin\shutdown.bat
+```
+
+Linux：
+
+```bash
+./bin/shutdown.sh
 ```
 
 ## 5. 上线前必须修改

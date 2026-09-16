@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.RepairRequestMapper">
+    <select id="findActiveDevices" resultType="map">
+        SELECT device_type_id,name FROM device_type WHERE status='ACTIVE' ORDER BY name
+    </select>
+    <select id="findActiveFaults" resultType="map">
+        SELECT f.fault_type_id,f.device_type_id,f.name,d.name device_name
+        FROM fault_type f JOIN device_type d ON d.device_type_id=f.device_type_id
+        WHERE f.status='ACTIVE' AND d.status='ACTIVE' ORDER BY d.name,f.name
+    </select>
+    <select id="findActiveAreas" resultType="map">
+        SELECT service_area_id,name FROM service_area WHERE status='ACTIVE' ORDER BY name
+    </select>
+    <select id="findMatchingActiveFault" resultType="long">
+        SELECT f.fault_type_id FROM fault_type f
+        WHERE f.fault_type_id=#{faultId} AND f.device_type_id=#{deviceId} AND f.status='ACTIVE'
+    </select>
+    <insert id="insertRepairRequest" parameterType="map" useGeneratedKeys="true" keyProperty="requestId">
+        INSERT INTO repair_request(customer_id,device_type_id,fault_type_id,service_area_id,fault_description,
+        service_address,contact_phone,expected_date,expected_slot_id,status)
+        VALUES(#{customerId},#{deviceId},#{faultId},#{areaId},#{description},#{address},#{phone},#{expectedDate},#{slotId},'OPEN')
+    </insert>
+    <select id="findRequest" resultType="map">
+        SELECT rr.*,dt.name device_name,ft.name fault_name,sa.name area_name
+        FROM repair_request rr
+        JOIN device_type dt ON dt.device_type_id=rr.device_type_id
+        JOIN fault_type ft ON ft.fault_type_id=rr.fault_type_id
+        JOIN service_area sa ON sa.service_area_id=rr.service_area_id
+        WHERE rr.repair_request_id=#{requestId} AND rr.customer_id=#{customerId}
+    </select>
+</mapper>

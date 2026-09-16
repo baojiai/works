@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.DashboardMapper">
+
+    <select id="countCustomerActiveAppointments" resultType="long">
+        SELECT COUNT(*) FROM appointment
+        WHERE customer_id = #{userId} AND status IN ('BOOKED', 'PENDING_RESCHEDULE')
+    </select>
+
+    <select id="countCustomerPendingAcceptance" resultType="long">
+        SELECT COUNT(*) FROM repair_order
+        WHERE customer_id = #{userId} AND order_status = 'PENDING_ACCEPTANCE'
+    </select>
+
+    <select id="countCustomerCompletedOrders" resultType="long">
+        SELECT COUNT(*) FROM repair_order
+        WHERE customer_id = #{userId} AND order_status = 'COMPLETED'
+    </select>
+
+    <select id="countEngineerCustomerAppointments" resultType="long">
+        SELECT COUNT(*) FROM appointment
+        WHERE customer_id = #{userId} AND status IN ('BOOKED', 'PENDING_RESCHEDULE')
+    </select>
+
+    <select id="countEngineerActiveOrders" resultType="long">
+        SELECT COUNT(*) FROM repair_order
+        WHERE engineer_id = #{userId}
+          AND order_status IN ('PENDING_VISIT', 'REPAIRING', 'WAITING_PARTS', 'REWORK')
+    </select>
+
+    <select id="countEngineerAvailableSchedules" resultType="long">
+        SELECT COUNT(*) FROM engineer_schedule
+        WHERE engineer_id = #{userId} AND status = 'AVAILABLE' AND service_date &gt;= CURRENT_DATE
+    </select>
+
+    <select id="countPendingPartRequests" resultType="long">
+        SELECT COUNT(*) FROM part_request WHERE status = 'PENDING'
+    </select>
+
+    <select id="countApprovedPartRequests" resultType="long">
+        SELECT COUNT(*) FROM part_request WHERE status = 'APPROVED'
+    </select>
+
+    <select id="countInventoryWarnings" resultType="long">
+        SELECT COUNT(*) FROM part_inventory WHERE available_quantity &lt;= warning_threshold
+    </select>
+
+    <select id="countActiveUsers" resultType="long">
+        SELECT COUNT(*) FROM system_user WHERE status = 'ACTIVE'
+    </select>
+
+    <select id="countPendingReschedules" resultType="long">
+        SELECT COUNT(*) FROM appointment WHERE status = 'PENDING_RESCHEDULE'
+    </select>
+
+    <select id="countActiveOrders" resultType="long">
+        SELECT COUNT(*) FROM repair_order WHERE order_status NOT IN ('COMPLETED', 'CANCELLED')
+    </select>
+
+</mapper>

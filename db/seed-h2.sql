@@ -1,3 +1,4 @@
+-- LEGACY/DEV REFERENCE ONLY. 正式种子数据位于 database/after_sales.sql；本文件不参与正式构建或部署。
 INSERT INTO system_user(username,password_hash,display_name,phone,role_type,status) VALUES
 ('warehouse','8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92','区域仓库','13800000003','WAREHOUSE','ACTIVE'),
 ('admin','8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92','平台管理员','13800000004','ADMIN','ACTIVE');

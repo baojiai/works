@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.WarehouseInventoryMapper">
+    <select id="findRecentFlows" resultType="map">SELECT f.*,p.name part_name,u.display_name operator_name FROM inventory_flow f JOIN part p ON p.part_id=f.part_id JOIN system_user u ON u.user_id=f.operator_id ORDER BY f.created_at DESC LIMIT 100</select>
+    <update id="lockInventory">UPDATE part_inventory SET available_quantity=available_quantity-#{quantity},locked_quantity=locked_quantity+#{quantity} WHERE part_id=#{partId} AND available_quantity&gt;=#{quantity}</update>
+    <update id="unlockInventory">UPDATE part_inventory SET available_quantity=available_quantity+#{quantity},locked_quantity=locked_quantity-#{quantity} WHERE part_id=#{partId} AND locked_quantity&gt;=#{quantity}</update>
+    <update id="issueInventory">UPDATE part_inventory SET total_quantity=total_quantity-#{quantity},locked_quantity=locked_quantity-#{quantity},issued_quantity=issued_quantity+#{quantity} WHERE part_id=#{partId} AND locked_quantity&gt;=#{quantity}</update>
+    <update id="adjustInventory">UPDATE part_inventory SET total_quantity=total_quantity+#{quantity},available_quantity=available_quantity+#{quantity} WHERE part_id=#{partId} AND total_quantity+#{quantity}&gt;=locked_quantity AND available_quantity+#{quantity}&gt;=0</update>
+    <insert id="insertRequestFlow">INSERT INTO inventory_flow(part_id,order_id,part_request_id,flow_type,quantity,reason,operator_id) VALUES(#{partId},#{orderId},#{requestId},#{flowType},#{quantity},#{reason},#{operatorId})</insert>
+    <insert id="insertStockFlow">INSERT INTO inventory_flow(part_id,flow_type,quantity,reason,operator_id) VALUES(#{partId},#{flowType},#{quantity},#{reason},#{operatorId})</insert>
+</mapper>

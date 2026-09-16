@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.RepairOrderMapper">
+    <sql id="orderListColumns">ro.order_id,ro.order_no,ro.customer_id,ro.engineer_id,ro.order_status,ro.created_at,ro.started_at,ro.submitted_at,ro.completed_at,a.appointment_no,eu.display_name engineer_name,cu.display_name customer_name,ft.name fault_name,rr.service_address</sql>
+    <sql id="orderListJoins">repair_order ro JOIN appointment a ON a.appointment_id=ro.appointment_id JOIN repair_request rr ON rr.repair_request_id=a.request_id JOIN fault_type ft ON ft.fault_type_id=rr.fault_type_id JOIN system_user eu ON eu.user_id=ro.engineer_id JOIN system_user cu ON cu.user_id=ro.customer_id</sql>
+    <select id="findOrdersForEngineer" resultType="map">SELECT <include refid="orderListColumns"/> FROM <include refid="orderListJoins"/> WHERE (ro.customer_id=#{userId} OR ro.engineer_id=#{userId}) ORDER BY ro.created_at DESC</select>
+    <select id="findOrdersForCustomer" resultType="map">SELECT <include refid="orderListColumns"/> FROM <include refid="orderListJoins"/> WHERE ro.customer_id=#{userId} ORDER BY ro.created_at DESC</select>
+    <select id="findAllOrders" resultType="map">SELECT <include refid="orderListColumns"/> FROM <include refid="orderListJoins"/> ORDER BY ro.created_at DESC</select>
+    <sql id="detailColumns">ro.*,a.appointment_no,rr.fault_description,rr.service_address,rr.contact_phone,dt.name device_name,ft.name fault_name,eu.display_name engineer_name,cu.display_name customer_name</sql>
+    <sql id="detailJoins">repair_order ro JOIN appointment a ON a.appointment_id=ro.appointment_id JOIN repair_request rr ON rr.repair_request_id=a.request_id JOIN device_type dt ON dt.device_type_id=rr.device_type_id JOIN fault_type ft ON ft.fault_type_id=rr.fault_type_id JOIN system_user eu ON eu.user_id=ro.engineer_id JOIN system_user cu ON cu.user_id=ro.customer_id</sql>
+    <select id="findOrderDetailForEngineer" resultType="map">SELECT <include refid="detailColumns"/> FROM <include refid="detailJoins"/> WHERE ro.order_id=#{orderId} AND (ro.customer_id=#{userId} OR ro.engineer_id=#{userId})</select>
+    <select id="findOrderDetailForCustomer" resultType="map">SELECT <include refid="detailColumns"/> FROM <include refid="detailJoins"/> WHERE ro.order_id=#{orderId} AND ro.customer_id=#{userId}</select>
+    <select id="findOrderDetail" resultType="map">SELECT <include refid="detailColumns"/> FROM <include refid="detailJoins"/> WHERE ro.order_id=#{orderId}</select>
+    <select id="findRepairRecords" resultType="map">SELECT rr.*,u.display_name engineer_name FROM repair_record rr JOIN system_user u ON u.user_id=rr.engineer_id WHERE rr.order_id=#{orderId} ORDER BY rr.created_at</select>
+    <select id="findStatusLogs" resultType="map">SELECT l.*,u.display_name operator_name FROM order_status_log l JOIN system_user u ON u.user_id=l.operator_id WHERE l.order_id=#{orderId} ORDER BY l.created_at</select>
+    <select id="findPartUsage" resultType="map">SELECT p.name,p.model,i.request_quantity,i.issued_quantity,i.return_quantity,pr.status FROM part_request pr JOIN part_request_item i ON i.part_request_id=pr.part_request_id JOIN part p ON p.part_id=i.part_id WHERE pr.order_id=#{orderId}</select>
+    <select id="findAcceptances" resultType="map">SELECT * FROM acceptance WHERE order_id=#{orderId} ORDER BY created_at</select>
+    <select id="findReview" resultType="map">SELECT * FROM review WHERE order_id=#{orderId} AND status='VALID'</select>
+</mapper>

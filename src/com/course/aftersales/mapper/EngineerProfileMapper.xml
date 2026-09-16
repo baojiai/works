@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.EngineerProfileMapper">
+    <select id="findProfile" resultType="map">SELECT u.display_name,u.phone,ep.* FROM engineer_profile ep JOIN system_user u ON u.user_id=ep.engineer_id WHERE ep.engineer_id=#{engineerId}</select>
+    <select id="findFaultOptions" resultType="map">SELECT f.fault_type_id,f.name,CASE WHEN s.engineer_id IS NULL THEN FALSE ELSE TRUE END selected FROM fault_type f LEFT JOIN engineer_skill s ON s.fault_type_id=f.fault_type_id AND s.engineer_id=#{engineerId} WHERE f.status='ACTIVE' ORDER BY f.name</select>
+    <select id="findAreaOptions" resultType="map">SELECT a.service_area_id,a.name,CASE WHEN e.engineer_id IS NULL THEN FALSE ELSE TRUE END selected FROM service_area a LEFT JOIN engineer_service_area e ON e.service_area_id=a.service_area_id AND e.engineer_id=#{engineerId} WHERE a.status='ACTIVE' ORDER BY a.name</select>
+    <update id="updateUserPhone">UPDATE system_user SET phone=#{phone} WHERE user_id=#{engineerId}</update>
+    <update id="updateProfileBio">UPDATE engineer_profile SET bio=#{bio} WHERE engineer_id=#{engineerId}</update>
+    <delete id="deleteSkills">DELETE FROM engineer_skill WHERE engineer_id=#{engineerId}</delete>
+    <insert id="insertSkill">INSERT INTO engineer_skill(engineer_id,fault_type_id,proficiency_level) VALUES(#{engineerId},#{faultId},3)</insert>
+    <delete id="deleteAreas">DELETE FROM engineer_service_area WHERE engineer_id=#{engineerId}</delete>
+    <insert id="insertArea">INSERT INTO engineer_service_area(engineer_id,service_area_id) VALUES(#{engineerId},#{areaId})</insert>
+    <insert id="insertOperationLog">INSERT INTO operation_log(user_id,operation_type,business_type,business_id,description) VALUES(#{userId},#{operation},#{businessType},#{businessId},#{description})</insert>
+</mapper>

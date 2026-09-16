@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.EngineerWorkMapper">
+    <select id="findCancelableAppointment" resultType="map">SELECT a.customer_id,a.schedule_id,ro.order_id FROM appointment a JOIN repair_order ro ON ro.appointment_id=a.appointment_id WHERE a.appointment_id=#{appointmentId} AND a.engineer_id=#{engineerId} AND a.status='BOOKED' AND ro.order_status='PENDING_VISIT'</select>
+    <update id="markAppointmentPendingReschedule">UPDATE appointment SET status='PENDING_RESCHEDULE',cancel_reason=#{reason},updated_at=CURRENT_TIMESTAMP WHERE appointment_id=#{appointmentId}</update>
+    <update id="releaseSchedule">UPDATE engineer_schedule SET status='AVAILABLE',version_no=version_no+1 WHERE schedule_id=#{scheduleId}</update>
+    <update id="markOrderPendingReschedule">UPDATE repair_order SET order_status='PENDING_RESCHEDULE' WHERE order_id=#{orderId}</update>
+    <insert id="insertEngineerCancelChange">INSERT INTO appointment_change(appointment_id,change_type,old_status,new_status,operator_id,reason) VALUES(#{appointmentId},'ENGINEER_CANCEL','BOOKED','PENDING_RESCHEDULE',#{engineerId},#{reason})</insert>
+    <insert id="insertPendingRescheduleLog">INSERT INTO order_status_log(order_id,operator_id,old_status,new_status,reason) VALUES(#{orderId},#{engineerId},'PENDING_VISIT','PENDING_RESCHEDULE',#{reason})</insert>
+    <insert id="insertRescheduleNotification">INSERT INTO notification(receiver_id,notification_type,title,content,related_business_type,related_business_id) VALUES(#{customerId},'RESCHEDULE_REQUIRED','工程师无法按约服务，请重新选择',#{reason},'APPOINTMENT',#{appointmentId})</insert>
+    <select id="findRecordableOrderId" resultType="long">SELECT order_id FROM repair_order WHERE order_id=#{orderId} AND engineer_id=#{engineerId} AND order_status IN ('REPAIRING','WAITING_PARTS','REWORK')</select>
+    <insert id="insertRepairRecord">INSERT INTO repair_record(order_id,engineer_id,diagnosis,repair_action,labor_hours,remark) VALUES(#{orderId},#{engineerId},#{diagnosis},#{repairAction},#{hours},#{remark})</insert>
+    <select id="findOrderForTransition" resultType="map">SELECT order_status,customer_id FROM repair_order WHERE order_id=#{orderId} AND engineer_id=#{engineerId}</select>
+    <select id="countRepairRecords" resultType="long">SELECT COUNT(*) FROM repair_record WHERE order_id=#{orderId}</select>
+    <select id="countOpenPartRequests" resultType="long">SELECT COUNT(*) FROM part_request WHERE order_id=#{orderId} AND status IN ('PENDING','APPROVED')</select>
+    <update id="updateOrderStatus">UPDATE repair_order SET order_status=#{newStatus}<if test="action == 'START'">,started_at=CURRENT_TIMESTAMP</if><if test="action == 'FINISH'">,submitted_at=CURRENT_TIMESTAMP</if> WHERE order_id=#{orderId}</update>
+    <insert id="insertOrderStatusLog">INSERT INTO order_status_log(order_id,operator_id,old_status,new_status,reason) VALUES(#{orderId},#{engineerId},#{oldStatus},#{newStatus},#{reason})</insert>
+    <insert id="insertAcceptanceNotification">INSERT INTO notification(receiver_id,notification_type,title,content,related_business_type,related_business_id) VALUES(#{customerId},'ACCEPTANCE_REQUIRED','维修已提交完工','请查看维修结果并完成验收','ORDER',#{orderId})</insert>
+    <select id="findAvailableParts" resultType="map">SELECT p.part_id,p.part_code,p.name,p.model,p.unit,i.available_quantity FROM part p JOIN part_inventory i ON i.part_id=p.part_id WHERE p.status='ACTIVE' ORDER BY p.name</select>
+    <select id="findPartRequestOrderId" resultType="long">SELECT order_id FROM repair_order WHERE order_id=#{orderId} AND engineer_id=#{engineerId} AND order_status IN ('REPAIRING','WAITING_PARTS','REWORK')</select>
+    <select id="countPendingPartRequests" resultType="long">SELECT COUNT(*) FROM part_request WHERE order_id=#{orderId} AND status='PENDING'</select>
+    <insert id="insertPartRequest" parameterType="map" useGeneratedKeys="true" keyProperty="requestId">INSERT INTO part_request(request_no,order_id,engineer_id,status,reason) VALUES(#{requestNo},#{orderId},#{engineerId},'PENDING',#{reason})</insert>
+    <insert id="insertPartRequestItem">INSERT INTO part_request_item(part_request_id,part_id,request_quantity) VALUES(#{requestId},#{partId},#{quantity})</insert>
+    <select id="findWarehouseManagerIds" resultType="long">SELECT user_id FROM system_user WHERE role_type='WAREHOUSE' AND status='ACTIVE'</select>
+    <insert id="insertPartReviewNotification">INSERT INTO notification(receiver_id,notification_type,title,content,related_business_type,related_business_id) VALUES(#{managerId},'PART_REVIEW','新的配件申请待审核',#{requestNo},'PART_REQUEST',#{requestId})</insert>
+    <insert id="insertOperationLog">INSERT INTO operation_log(user_id,operation_type,business_type,business_id,description) VALUES(#{userId},#{operation},#{businessType},#{businessId},#{description})</insert>
+</mapper>

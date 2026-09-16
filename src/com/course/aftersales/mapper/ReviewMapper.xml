@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.ReviewMapper">
+    <select id="findOrderForAcceptance" resultType="map">SELECT order_status,engineer_id,appointment_id FROM repair_order WHERE order_id=#{orderId} AND customer_id=#{customerId}</select>
+    <insert id="insertAcceptance" parameterType="map" useGeneratedKeys="true" keyProperty="acceptanceId">INSERT INTO acceptance(order_id,customer_id,result,comment) VALUES(#{orderId},#{customerId},#{result},#{comment})</insert>
+    <update id="markOrderCompleted">UPDATE repair_order SET order_status='COMPLETED',completed_at=CURRENT_TIMESTAMP WHERE order_id=#{orderId}</update>
+    <update id="markOrderRework">UPDATE repair_order SET order_status='REWORK',completed_at=NULL WHERE order_id=#{orderId}</update>
+    <insert id="insertAcceptanceStatusLog">INSERT INTO order_status_log(order_id,operator_id,old_status,new_status,reason) VALUES(#{orderId},#{customerId},'PENDING_ACCEPTANCE',#{nextStatus},#{comment})</insert>
+    <update id="markAppointmentFulfilled">UPDATE appointment SET status='FULFILLED',updated_at=CURRENT_TIMESTAMP WHERE appointment_id=#{appointmentId}</update>
+    <insert id="insertRework">INSERT INTO rework(order_id,acceptance_id,reason,status) VALUES(#{orderId},#{acceptanceId},#{comment},'IN_PROGRESS')</insert>
+    <insert id="insertReworkNotification">INSERT INTO notification(receiver_id,notification_type,title,content,related_business_type,related_business_id) VALUES(#{engineerId},'REWORK','客户验收未通过',#{comment},'ORDER',#{orderId})</insert>
+    <select id="findOrderForReview" resultType="map">SELECT engineer_id FROM repair_order WHERE order_id=#{orderId} AND customer_id=#{customerId} AND order_status='COMPLETED'</select>
+    <insert id="insertReview">INSERT INTO review(order_id,customer_id,engineer_id,rating,content,status) VALUES(#{orderId},#{customerId},#{engineerId},#{rating},#{content},'VALID')</insert>
+    <select id="findEngineerReviewStats" resultType="map">SELECT COUNT(DISTINCT CASE WHEN ro.order_status='COMPLETED' THEN ro.order_id END) completed_count,COALESCE(AVG(CASE WHEN rv.status='VALID' THEN rv.rating END),0) average_rating,COUNT(DISTINCT CASE WHEN rv.status='VALID' THEN rv.review_id END) review_count FROM repair_order ro LEFT JOIN review rv ON rv.order_id=ro.order_id WHERE ro.engineer_id=#{engineerId}</select>
+    <select id="findEngineerFulfillmentStats" resultType="map">SELECT SUM(CASE WHEN status='FULFILLED' THEN 1 ELSE 0 END) ok,COUNT(*) total FROM appointment WHERE engineer_id=#{engineerId} AND status IN ('FULFILLED','PENDING_RESCHEDULE')</select>
+    <update id="updateEngineerStats">UPDATE engineer_profile SET completed_count=#{completedCount},average_rating=#{averageRating},review_count=#{reviewCount},fulfillment_rate=#{fulfillmentRate} WHERE engineer_id=#{engineerId}</update>
+    <insert id="insertOperationLog">INSERT INTO operation_log(user_id,operation_type,business_type,business_id,description) VALUES(#{userId},#{operation},#{businessType},#{businessId},#{description})</insert>
+</mapper>

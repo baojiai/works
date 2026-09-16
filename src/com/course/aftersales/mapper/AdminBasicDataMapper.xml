@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.AdminBasicDataMapper">
+    <select id="findDevices" resultType="map">SELECT * FROM device_type ORDER BY device_type_id</select>
+    <select id="findFaults" resultType="map">SELECT f.*,d.name device_name FROM fault_type f JOIN device_type d ON d.device_type_id=f.device_type_id ORDER BY f.fault_type_id</select>
+    <select id="findAreas" resultType="map">SELECT * FROM service_area ORDER BY service_area_id</select>
+    <select id="findSlots" resultType="map">SELECT * FROM standard_time_slot ORDER BY start_time</select>
+    <insert id="insertDevice" parameterType="map" useGeneratedKeys="true" keyProperty="generatedId">INSERT INTO device_type(name,status) VALUES(#{name},'ACTIVE')</insert>
+    <insert id="insertFault" parameterType="map" useGeneratedKeys="true" keyProperty="generatedId">INSERT INTO fault_type(device_type_id,name,status) VALUES(#{parentId},#{name},'ACTIVE')</insert>
+    <insert id="insertArea" parameterType="map" useGeneratedKeys="true" keyProperty="generatedId">INSERT INTO service_area(name,status) VALUES(#{name},'ACTIVE')</insert>
+    <insert id="insertSlot" parameterType="map" useGeneratedKeys="true" keyProperty="generatedId">INSERT INTO standard_time_slot(name,start_time,end_time,status) VALUES(#{name},#{startTime},#{endTime},'ACTIVE')</insert>
+    <insert id="insertOperationLog">INSERT INTO operation_log(user_id,operation_type,business_type,business_id,description) VALUES(#{userId},#{operation},#{businessType},#{businessId},#{description})</insert>
+</mapper>

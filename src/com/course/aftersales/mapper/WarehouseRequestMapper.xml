@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.WarehouseRequestMapper">
+    <select id="findRequests" resultType="map">SELECT pr.*,u.display_name engineer_name,ro.order_no FROM part_request pr JOIN system_user u ON u.user_id=pr.engineer_id JOIN repair_order ro ON ro.order_id=pr.order_id ORDER BY CASE pr.status WHEN 'PENDING' THEN 0 WHEN 'APPROVED' THEN 1 ELSE 2 END,pr.created_at DESC</select>
+    <select id="findPendingRequest" resultType="map">SELECT * FROM part_request WHERE part_request_id=#{requestId} AND status='PENDING'</select>
+    <select id="findApprovedRequest" resultType="map">SELECT * FROM part_request WHERE part_request_id=#{requestId} AND status='APPROVED'</select>
+    <select id="findRequestItems" resultType="map">SELECT * FROM part_request_item WHERE part_request_id=#{requestId} ORDER BY item_id</select>
+    <update id="approveRequest">UPDATE part_request SET status='APPROVED',reviewer_id=#{operatorId},reviewed_at=CURRENT_TIMESTAMP,review_comment=#{comment} WHERE part_request_id=#{requestId}</update>
+    <update id="rejectRequest">UPDATE part_request SET status='REJECTED',reviewer_id=#{operatorId},reviewed_at=CURRENT_TIMESTAMP,review_comment=#{comment} WHERE part_request_id=#{requestId}</update>
+    <update id="cancelRequest">UPDATE part_request SET status='CANCELLED',review_comment=#{reason} WHERE part_request_id=#{requestId}</update>
+    <update id="markRequestIssued">UPDATE part_request SET status='ISSUED' WHERE part_request_id=#{requestId}</update>
+    <update id="markRequestCompleted">UPDATE part_request SET status='COMPLETED' WHERE part_request_id=#{requestId} AND status='ISSUED'</update>
+    <update id="incrementItemIssued">UPDATE part_request_item SET issued_quantity=issued_quantity+#{quantity} WHERE item_id=#{itemId}</update>
+    <insert id="insertNotification">INSERT INTO notification(receiver_id,notification_type,title,content,related_business_type,related_business_id) VALUES(#{receiverId},#{notificationType},#{title},#{content},#{businessType},#{businessId})</insert>
+    <insert id="insertOperationLog">INSERT INTO operation_log(user_id,operation_type,business_type,business_id,description) VALUES(#{userId},#{operation},#{businessType},#{businessId},#{description})</insert>
+</mapper>

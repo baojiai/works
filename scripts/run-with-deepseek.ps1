@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 [Console]::InputEncoding = New-Object System.Text.UTF8Encoding($false)
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 $OutputEncoding = [Console]::OutputEncoding
@@ -17,6 +17,6 @@ if (-not $env:DEEPSEEK_MODEL) {
     $env:DEEPSEEK_MODEL = 'deepseek-v4-flash'
 }
 
-& (Join-Path $PSScriptRoot 'build.ps1')
+# run.ps1 负责：构建检查（缺 WAR 时自动调用 build.ps1）+ 部署 + 启动 Tomcat。
 & (Join-Path $PSScriptRoot 'stop.ps1')
 & (Join-Path $PSScriptRoot 'run.ps1')

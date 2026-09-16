@@ -10,28 +10,32 @@
     </div>
 </div>
 
-<div class="order-grid">
+<div class="row g-3">
     <c:forEach items="${orders}" var="x">
-        <a class="order-card" href="${pageContext.request.contextPath}/order/detail?id=${x.order_id}">
-            <div>
-                <span class="status"><c:out value="${x.order_status}"/></span>
-                <small><c:out value="${x.order_no}"/></small>
-            </div>
-            <h2><c:out value="${x.fault_name}"/></h2>
-            <p><c:out value="${x.service_address}"/></p>
-            <div class="order-meta">
-                <c:choose>
-                    <c:when test="${x.customer_id == sessionScope.user.id}"><span>关系：我发起的维修</span></c:when>
-                    <c:when test="${x.engineer_id == sessionScope.user.id}"><span>关系：我负责的工单</span></c:when>
-                    <c:otherwise><span>平台工单</span></c:otherwise>
-                </c:choose>
-                <span>客户：<c:out value="${x.customer_name}"/></span>
-                <span>工程师：<c:out value="${x.engineer_name}"/></span>
-            </div>
-        </a>
+        <div class="col-12 col-md-6 col-xl-4">
+            <a class="card border-0 shadow-sm text-decoration-none h-100" href="${pageContext.request.contextPath}/order/detail?id=${x.order_id}">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <span class="badge ${x.order_status == 'COMPLETED' ? 'text-bg-success' : (x.order_status == 'CANCELLED' ? 'text-bg-secondary' : (x.order_status == 'PENDING_VISIT' ? 'text-bg-primary' : (x.order_status == 'REWORK' || x.order_status == 'WAITING_PARTS' ? 'text-bg-warning' : 'text-bg-info')))}"><c:out value="${x.order_status}"/></span>
+                        <small><c:out value="${x.order_no}"/></small>
+                    </div>
+                    <h2 class="h5 mt-3 mb-1"><c:out value="${x.fault_name}"/></h2>
+                    <p class="text-secondary mb-3"><c:out value="${x.service_address}"/></p>
+                    <div class="d-flex flex-column gap-1 small text-secondary">
+                        <c:choose>
+                            <c:when test="${x.customer_id == sessionScope.user.id}"><span>关系：我发起的维修</span></c:when>
+                            <c:when test="${x.engineer_id == sessionScope.user.id}"><span>关系：我负责的工单</span></c:when>
+                            <c:otherwise><span>平台工单</span></c:otherwise>
+                        </c:choose>
+                        <span>客户：<c:out value="${x.customer_name}"/></span>
+                        <span>工程师：<c:out value="${x.engineer_name}"/></span>
+                    </div>
+                </div>
+            </a>
+        </div>
     </c:forEach>
 </div>
 
-<c:if test="${empty orders}"><div class="empty">暂无维修工单</div></c:if>
+<c:if test="${empty orders}"><div class="card text-center py-5"><div class="card-body text-secondary">暂无维修工单</div></div></c:if>
 
 <%@ include file="footer.jspf" %>

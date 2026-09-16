@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.EngineerApplicationMapper">
+    <select id="findActiveAreas" resultType="map">SELECT service_area_id,name FROM service_area WHERE status='ACTIVE' ORDER BY name</select>
+    <select id="findActiveFaults" resultType="map">SELECT f.fault_type_id,f.name,d.name device_name FROM fault_type f JOIN device_type d ON d.device_type_id=f.device_type_id WHERE f.status='ACTIVE' ORDER BY d.name,f.name</select>
+    <select id="findLatestApplication" resultType="map">SELECT ea.*,sa.name area_name,u.display_name reviewer_name FROM engineer_application ea JOIN service_area sa ON sa.service_area_id=ea.service_area_id LEFT JOIN system_user u ON u.user_id=ea.reviewer_id WHERE ea.user_id=#{userId} ORDER BY ea.created_at DESC LIMIT 1</select>
+    <select id="findPendingApplicationId" resultType="long">SELECT application_id FROM engineer_application WHERE user_id=#{userId} AND status='PENDING'</select>
+    <select id="findActiveAreaId" resultType="long">SELECT service_area_id FROM service_area WHERE service_area_id=#{areaId} AND status='ACTIVE'</select>
+    <insert id="insertApplication" parameterType="map" useGeneratedKeys="true" keyProperty="applicationId">INSERT INTO engineer_application(user_id,real_name,id_card_no,phone,service_area_id,experience_years,certificate_no,skill_description,material_description,status) VALUES(#{userId},#{realName},#{idCardNo},#{phone},#{areaId},#{years},#{certificateNo},#{skillDescription},#{materialDescription},'PENDING')</insert>
+    <select id="findActiveFaultId" resultType="long">SELECT fault_type_id FROM fault_type WHERE fault_type_id=#{faultId} AND status='ACTIVE'</select>
+    <insert id="insertApplicationSkill">INSERT INTO engineer_application_skill(application_id,fault_type_id) VALUES(#{applicationId},#{faultId})</insert>
+    <select id="findActiveAdminIds" resultType="long">SELECT user_id FROM system_user WHERE role_type='ADMIN' AND status='ACTIVE'</select>
+    <insert id="insertApplyNotification">INSERT INTO notification(receiver_id,notification_type,title,content,related_business_type,related_business_id) VALUES(#{adminId},'ENGINEER_APPLY','新的工程师认证待审核',#{content},'ENGINEER_APPLICATION',#{applicationId})</insert>
+    <select id="findApplications" resultType="map">SELECT ea.*,su.display_name user_name,sa.name area_name,ru.display_name reviewer_name FROM engineer_application ea JOIN system_user su ON su.user_id=ea.user_id JOIN service_area sa ON sa.service_area_id=ea.service_area_id LEFT JOIN system_user ru ON ru.user_id=ea.reviewer_id ORDER BY CASE ea.status WHEN 'PENDING' THEN 0 ELSE 1 END,ea.created_at DESC</select>
+    <select id="findApplicationSkills" resultType="map">SELECT eas.application_id,ft.name fault_name,dt.name device_name FROM engineer_application_skill eas JOIN fault_type ft ON ft.fault_type_id=eas.fault_type_id JOIN device_type dt ON dt.device_type_id=ft.device_type_id ORDER BY eas.application_id,dt.name,ft.name</select>
+    <select id="findPendingApplication" resultType="map">SELECT * FROM engineer_application WHERE application_id=#{applicationId} AND status='PENDING'</select>
+    <update id="updateApplicationReview">UPDATE engineer_application SET status=#{status},reviewer_id=#{adminId},review_comment=#{comment},reviewed_at=CURRENT_TIMESTAMP WHERE application_id=#{applicationId}</update>
+    <update id="updateUserAsEngineer">UPDATE system_user SET role_type='ENGINEER',display_name=#{realName},phone=#{phone} WHERE user_id=#{userId}</update>
+    <select id="findEngineerProfileId" resultType="long">SELECT engineer_id FROM engineer_profile WHERE engineer_id=#{userId}</select>
+    <insert id="insertEngineerProfile">INSERT INTO engineer_profile(engineer_id,bio,qualification_status,employment_status) VALUES(#{userId},#{bio},'APPROVED','ACTIVE')</insert>
+    <update id="updateEngineerProfile">UPDATE engineer_profile SET bio=#{bio},qualification_status='APPROVED',employment_status='ACTIVE' WHERE engineer_id=#{userId}</update>
+    <delete id="deleteEngineerSkills">DELETE FROM engineer_skill WHERE engineer_id=#{userId}</delete>
+    <select id="findApplicationFaultIds" resultType="long">SELECT fault_type_id FROM engineer_application_skill WHERE application_id=#{applicationId}</select>
+    <insert id="insertEngineerSkill">INSERT INTO engineer_skill(engineer_id,fault_type_id,proficiency_level) VALUES(#{userId},#{faultId},3)</insert>
+    <delete id="deleteEngineerAreas">DELETE FROM engineer_service_area WHERE engineer_id=#{userId}</delete>
+    <insert id="insertEngineerArea">INSERT INTO engineer_service_area(engineer_id,service_area_id) VALUES(#{userId},#{areaId})</insert>
+    <insert id="insertReviewNotification">INSERT INTO notification(receiver_id,notification_type,title,content,related_business_type,related_business_id) VALUES(#{userId},'ENGINEER_APPLY_RESULT',#{title},#{content},'ENGINEER_APPLICATION',#{applicationId})</insert>
+    <insert id="insertOperationLog">INSERT INTO operation_log(user_id,operation_type,business_type,business_id,description) VALUES(#{userId},#{operation},#{businessType},#{businessId},#{description})</insert>
+</mapper>

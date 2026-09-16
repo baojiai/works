@@ -7,9 +7,11 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#f6f8fb">
     <title><c:out value="${editionName}"/> · RepairFlow</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=12">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=14">
 </head>
 <body class="login-page edition-${edition}">
+<div class="login-shell">
     <section class="login-visual">
         <div class="login-art">
             <div class="visual-brand"><span class="brand-mark">R</span><span><strong>RepairFlow</strong><small>AFTER-SALES SERVICE PLATFORM</small></span></div>
@@ -43,10 +45,10 @@
             <span class="login-kicker"><c:out value="${editionKicker}"/></span>
             <h2><c:out value="${editionName}"/>登录</h2>
             <p class="muted"><c:out value="${editionLead}"/></p>
-            <c:if test="${not empty error}"><div class="alert danger"><span>!</span><c:out value="${error}"/></div></c:if>
-            <label><c:out value="${accountLabel}"/><div class="input-wrap"><span>●</span><input name="account" value="${param.account}" required autofocus autocomplete="username" placeholder="${accountPlaceholder}"></div></label>
-            <label>登录密码<div class="input-wrap"><span>◆</span><input name="password" type="password" required autocomplete="current-password" placeholder="请输入密码"></div></label>
-            <button class="btn primary block login-submit">进入<c:out value="${editionName}"/> <span>→</span></button>
+            <c:if test="${not empty error}"><div class="alert alert-danger d-flex align-items-center gap-2"><span>!</span><c:out value="${error}"/></div></c:if>
+            <label><c:out value="${accountLabel}"/><div class="input-wrap"><span>●</span><input name="account" value="${param.account}" required autofocus autocomplete="username" placeholder="${accountPlaceholder}" class="form-control"></div></label>
+            <label>登录密码<div class="input-wrap"><span>◆</span><input name="password" type="password" required autocomplete="current-password" placeholder="请输入密码" class="form-control"></div></label>
+            <button class="btn btn-primary w-100 login-submit">进入<c:out value="${editionName}"/> <span>→</span></button>
             <c:choose>
                 <c:when test="${edition == 'client'}"><p class="login-tip">还没有账号？<a href="${pageContext.request.contextPath}/register">手机号注册客户版</a></p></c:when>
                 <c:when test="${edition == 'warehouse'}"><p class="login-tip">仓库账号由平台管理端统一开通，不开放自助注册。</p></c:when>
@@ -54,6 +56,8 @@
             </c:choose>
         </form>
     </section>
-    <script src="${pageContext.request.contextPath}/assets/app.js?v=12"></script>
+</div>
+    <script src="${pageContext.request.contextPath}/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/app.js?v=13"></script>
 </body>
 </html>

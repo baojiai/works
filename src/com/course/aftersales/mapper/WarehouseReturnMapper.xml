@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.WarehouseReturnMapper">
+    <select id="findReturnableItem" resultType="map">SELECT i.*,pr.order_id,pr.part_request_id,pr.status FROM part_request_item i JOIN part_request pr ON pr.part_request_id=i.part_request_id WHERE i.item_id=#{itemId} AND pr.status IN ('ISSUED','COMPLETED')</select>
+    <update id="restoreInventory">UPDATE part_inventory SET total_quantity=total_quantity+#{quantity},available_quantity=available_quantity+#{quantity},issued_quantity=issued_quantity-#{quantity} WHERE part_id=#{partId}</update>
+    <update id="incrementItemReturn">UPDATE part_request_item SET return_quantity=return_quantity+#{quantity} WHERE item_id=#{itemId}</update>
+    <insert id="insertReturnFlow">INSERT INTO inventory_flow(part_id,order_id,part_request_id,flow_type,quantity,reason,operator_id) VALUES(#{partId},#{orderId},#{requestId},'RETURN',#{quantity},#{reason},#{operatorId})</insert>
+    <insert id="insertOperationLog">INSERT INTO operation_log(user_id,operation_type,business_type,business_id,description) VALUES(#{userId},#{operation},#{businessType},#{businessId},#{description})</insert>
+</mapper>

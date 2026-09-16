@@ -7,7 +7,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#f6f8fb">
     <title>${empty pageTitle ? '售后维修协同平台' : pageTitle} · RepairFlow</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=12">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=13">
 </head>
 <body class="app-page">
 <div class="app-layout">
@@ -63,4 +64,4 @@
             </div>
         </header>
         <main class="shell">
-            <c:if test="${not empty sessionScope.flash}"><div class="alert success"><span>✓</span><c:out value="${sessionScope.flash}"/></div><c:remove var="flash" scope="session"/></c:if>
+            <c:if test="${not empty sessionScope.flash}"><div class="alert alert-success d-flex align-items-center gap-2"><span>✓</span><c:out value="${sessionScope.flash}"/></div><c:remove var="flash" scope="session"/></c:if>

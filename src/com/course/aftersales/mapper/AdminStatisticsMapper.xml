@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.course.aftersales.mapper.AdminStatisticsMapper">
+    <select id="findExceptions" resultType="map">SELECT a.appointment_id,a.appointment_no,a.status,a.cancel_reason,a.updated_at,cu.display_name customer_name,eu.display_name engineer_name FROM appointment a JOIN system_user cu ON cu.user_id=a.customer_id JOIN system_user eu ON eu.user_id=a.engineer_id WHERE a.status IN ('PENDING_RESCHEDULE','EXPIRED') ORDER BY a.updated_at DESC</select>
+    <select id="findRecentLogs" resultType="map">SELECT l.*,u.display_name FROM operation_log l LEFT JOIN system_user u ON u.user_id=l.user_id ORDER BY l.created_at DESC LIMIT 80</select>
+    <select id="findStatistics" resultType="map">SELECT '预约总数' metric,COUNT(*) metric_value FROM appointment UNION ALL SELECT '完成工单',COUNT(*) FROM repair_order WHERE order_status='COMPLETED' UNION ALL SELECT '配件申请',COUNT(*) FROM part_request UNION ALL SELECT '有效评价',COUNT(*) FROM review WHERE status='VALID'</select>
+    <select id="findPendingReschedulesBefore" resultType="map">SELECT a.appointment_id,ro.order_id,a.customer_id FROM appointment a JOIN repair_order ro ON ro.appointment_id=a.appointment_id WHERE a.status='PENDING_RESCHEDULE' AND a.updated_at&lt;#{threshold}</select>
+    <update id="markAppointmentExpired">UPDATE appointment SET status='EXPIRED',updated_at=CURRENT_TIMESTAMP WHERE appointment_id=#{appointmentId}</update>
+    <update id="cancelOrder">UPDATE repair_order SET order_status='CANCELLED' WHERE order_id=#{orderId}</update>
+    <insert id="insertRescheduleTimeoutChange">INSERT INTO appointment_change(appointment_id,change_type,old_status,new_status,operator_id,reason) VALUES(#{appointmentId},'RESCHEDULE_TIMEOUT','PENDING_RESCHEDULE','EXPIRED',#{adminId},'待改约超过系统配置时限')</insert>
+    <select id="findUpcomingAppointments" resultType="map">SELECT a.appointment_id,a.customer_id,a.engineer_id,es.service_date,st.start_time FROM appointment a JOIN engineer_schedule es ON es.schedule_id=a.schedule_id JOIN standard_time_slot st ON st.slot_id=es.slot_id WHERE a.status='BOOKED' AND es.service_date BETWEEN CURRENT_DATE AND #{untilDate}</select>
+    <select id="findOverdueOrders" resultType="map">SELECT order_id,engineer_id FROM repair_order WHERE order_status IN ('REPAIRING','WAITING_PARTS','REWORK') AND created_at&lt;#{threshold}</select>
+    <select id="findWarehouseManagerIds" resultType="long">SELECT user_id FROM system_user WHERE role_type='WAREHOUSE' AND status='ACTIVE'</select>
+    <select id="findOverduePartRequestIds" resultType="long">SELECT part_request_id FROM part_request WHERE status='PENDING' AND created_at&lt;#{threshold}</select>
+    <select id="findExistingNotification" resultType="long">SELECT notification_id FROM notification WHERE receiver_id=#{receiverId} AND notification_type=#{notificationType} AND related_business_type=#{businessType} AND related_business_id=#{businessId} LIMIT 1</select>
+    <insert id="insertNotification">INSERT INTO notification(receiver_id,notification_type,title,content,related_business_type,related_business_id) VALUES(#{receiverId},#{notificationType},#{title},#{content},#{businessType},#{businessId})</insert>
+    <insert id="insertOperationLog">INSERT INTO operation_log(user_id,operation_type,business_type,business_id,description) VALUES(#{userId},#{operation},#{businessType},#{businessId},#{description})</insert>
+</mapper>
