@@ -32,7 +32,7 @@ mvn test
 
 MySQL 测试会写入并清理探针数据，只能连接专用测试库。
 
-最近一次默认验证结果：`mvn clean package` 构建成功；共发现 30 项测试，28 项通过，0 项失败，0 项错误，2 项 MySQL 条件测试按设计跳过；WAR 生成于 `target/after-sales.war`。
+最近一次默认验证结果：`mvn clean package` 构建成功；共发现 30 项测试，28 项通过，0 项失败，0 项错误，2 项 MySQL 条件测试按设计跳过；WAR 生成于 `target/after-sales.war`。随后在 127.0.0.1:3307 的隔离 MySQL 8.4.8 实例执行完整测试，30 项全部通过，0 项跳过。MySQL 探针结束后复核为 2 个种子账号，报修、预约、通知和操作日志均为 0。
 
 ## 3. 功能覆盖矩阵
 
@@ -69,9 +69,9 @@ MySQL 测试会写入并清理探针数据，只能连接专用测试库。
 | ADMIN-04 | 管理员 | SLA 提醒生成、去重及失败回滚 | H2 集成 | `Stage7AdminTransactionProbe` | 自动通过 |
 | ADMIN-05 | 管理员 | 超时改约处理、通知、日志及失败回滚 | H2 集成 | `Stage7AdminTransactionProbe` | 自动通过 |
 | MSG-01 | 通知 | 当前用户通知页面和未读数量 | 单元、MockMvc | `DashboardServiceTest`、`RoleControllerWebTest` | 自动通过 |
-| DB-01 | 数据库 | 正式 MySQL 连接、版本和当前数据库 | MySQL 集成 | `Stage9MySqlConnectionProbe` | 条件执行 |
-| DB-02 | 数据库 | MySQL 事务、生成键、时区、Boolean 映射 | MySQL 集成 | `Stage9MySqlTransactionProbe` | 条件执行 |
-| DB-03 | 并发 | 库存并发和预约并发一致性 | MySQL 集成 | `Stage9MySqlTransactionProbe` | 条件执行 |
+| DB-01 | 数据库 | 正式 MySQL 连接、版本和当前数据库 | MySQL 集成 | `Stage9MySqlConnectionProbe` | 条件执行，已验证通过 |
+| DB-02 | 数据库 | MySQL 事务、生成键、时区、Boolean 映射 | MySQL 集成 | `Stage9MySqlTransactionProbe` | 条件执行，已验证通过 |
+| DB-03 | 并发 | 库存并发和预约并发一致性 | MySQL 集成 | `Stage9MySqlTransactionProbe` | 条件执行，已验证通过 |
 | UI-01 | PC 端 | 主要角色业务页面和 1920×1080 页面效果 | 人工浏览器 | `figure/图4-1` 至 `图4-12` | 人工证据 |
 | UI-02 | 移动端 | 375px 和小米 14 工作台、抽屉导航、纵向报修表单 | 人工浏览器 | `figure/图4-13`、`figure/图4-14` | 人工证据 |
 

@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Stage9MySqlTransactionProbe {
     private static String url, user, password;
     private static Connection direct;
+    private static long operationLogBaseline = -1L;
 
     public static void main(String[] args) throws Exception {
         url = System.getenv("APP_DB_URL");
@@ -44,6 +45,7 @@ public class Stage9MySqlTransactionProbe {
             if (!AopUtils.isAopProxy(customers) || !AopUtils.isAopProxy(warehouse) || !AopUtils.isAopProxy(admins)) throw new AssertionError("services are not transactional proxies");
 
             cleanupProbeData();
+            operationLogBaseline = scalar("SELECT COALESCE(MAX(operation_log_id),0) FROM operation_log");
             long adminId = scalar("SELECT user_id FROM system_user WHERE username='admin'");
             long warehouseId = scalar("SELECT user_id FROM system_user WHERE username='warehouse'");
             long areaId = scalar("SELECT MIN(service_area_id) FROM service_area WHERE status='ACTIVE'");
@@ -269,6 +271,7 @@ public class Stage9MySqlTransactionProbe {
         execute("DELETE FROM appointment WHERE request_id IN (SELECT repair_request_id FROM repair_request WHERE fault_description LIKE '9B-probe%' OR fault_description LIKE '9B-conc%' OR fault_description LIKE '9B-sla%')");
         execute("DELETE FROM repair_request WHERE fault_description LIKE '9B-probe%' OR fault_description LIKE '9B-conc%' OR fault_description LIKE '9B-sla%'");
         execute("DELETE FROM engineer_schedule WHERE service_date >= CURRENT_DATE AND engineer_id IN (SELECT user_id FROM system_user WHERE phone LIKE '1397719%')");
+        execute("DELETE FROM notification WHERE related_business_type='ENGINEER_APPLICATION' AND related_business_id IN (SELECT application_id FROM engineer_application WHERE phone LIKE '1397719%')");
         execute("DELETE FROM engineer_application_skill WHERE application_id IN (SELECT application_id FROM engineer_application WHERE phone LIKE '1397719%')");
         execute("DELETE FROM engineer_application WHERE phone LIKE '1397719%'");
         execute("DELETE FROM review WHERE customer_id IN (SELECT user_id FROM system_user WHERE phone LIKE '1397719%')");
@@ -282,6 +285,7 @@ public class Stage9MySqlTransactionProbe {
         execute("DELETE FROM notification WHERE receiver_id IN (SELECT user_id FROM system_user WHERE phone LIKE '1397719%') OR notification_type='9B_PROBE'");
         execute("DELETE FROM system_user WHERE phone LIKE '1397719%'");
         execute("DELETE FROM standard_time_slot WHERE name='9B-probe-slot'");
+        if (operationLogBaseline >= 0L) execute("DELETE FROM operation_log WHERE operation_log_id>?", operationLogBaseline);
     }
 
     private static Connection open() throws Exception {
