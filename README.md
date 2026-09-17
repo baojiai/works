@@ -64,10 +64,22 @@ $env:APP_DB_DRIVER='com.mysql.cj.jdbc.Driver'
 ## 构建与运行
 
 ```powershell
+mvn test
 mvn clean package
 powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 powershell -ExecutionPolicy Bypass -File .\scripts\run.ps1
 ```
+
+`mvn test` 会在隔离的 H2 临时数据库中执行客户、工程师、仓库和管理员事务测试，不会修改正式 MySQL 数据。
+
+如需在已准备好的测试 MySQL 数据库上执行连接、事务和并发探针，请先设置 `APP_DB_*` 环境变量，再执行：
+
+```powershell
+$env:RUN_MYSQL_INTEGRATION_TESTS='true'
+mvn test
+```
+
+MySQL 集成探针会写入并清理探针数据，只能连接专用测试库，不要连接生产数据库。
 
 构建产物为 `target\after-sales.war`。运行脚本将其部署到隔离的 `runtime\tomcat`，并使用本机 Tomcat 9。
 
