@@ -81,6 +81,8 @@ mvn test
 
 MySQL 集成探针会写入并清理探针数据，只能连接专用测试库，不要连接生产数据库。
 
+自动化测试范围、测试用例与功能覆盖关系见 `docs/TEST_COVERAGE_MATRIX.md`。
+
 构建产物为 `target\after-sales.war`。运行脚本将其部署到隔离的 `runtime\tomcat`，并使用本机 Tomcat 9。
 
 停止服务：

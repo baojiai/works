@@ -63,21 +63,23 @@ public class AuthController {
                         HttpSession session,
                         Model model) {
         String requestPath = path(request);
-        prepareLogin(requestPath, model);
         try {
             SessionUser user = service.login(account.trim(), password.trim());
             if (user == null && !username.trim().isEmpty()) user = service.login(username.trim(), password.trim());
             if (user == null) {
+                prepareLogin(requestPath, model);
                 model.addAttribute("error", "账号、密码错误或账号已停用");
                 return "login";
             }
             if (!canEnter(requestPath, user)) {
+                prepareLogin(requestPath, model);
                 model.addAttribute("error", "当前账号不属于该发行版本，请切换到对应入口登录");
                 return "login";
             }
             session.setAttribute("user", user);
             return "redirect:/dashboard";
         } catch (Exception e) {
+            prepareLogin(requestPath, model);
             model.addAttribute("error", rootMessage(e));
             return "login";
         }
