@@ -32,6 +32,16 @@ async function capture(page, name) {
   });
 }
 
+async function openOrder(page, orderNo) {
+  await page.goto(`${ROOT}/orders`);
+  const orderLink = page.locator('a[href*="/order/detail?id="]').filter({ hasText: orderNo });
+  await Promise.all([
+    page.waitForURL(/\/order\/detail\?id=\d+/),
+    orderLink.click(),
+  ]);
+  await settle(page);
+}
+
 (async () => {
   const browser = await chromium.launch({
     headless: true,
@@ -72,10 +82,11 @@ async function capture(page, name) {
   await page.goto(`${ROOT}/engineer/schedule`);
   await capture(page, '图4-5 工程师档案与固定标准时段排班.png');
 
-  await page.goto(`${ROOT}/order/detail?id=2`);
+  await openOrder(page, 'WO-CH4-REPAIR');
   await capture(page, '图4-6 工程师维修工单执行与过程记录.png');
 
-  await page.goto(`${ROOT}/engineer/part/request?orderId=2`);
+  await page.locator('a[href*="/engineer/part/request?orderId="]').click();
+  await settle(page);
   const parts = page.locator('select[name="partId"]');
   const quantities = page.locator('input[name="quantity"]');
   await parts.nth(0).selectOption('1');
@@ -100,7 +111,7 @@ async function capture(page, name) {
   await capture(page, '图4-10B 平台管理端SLA异常预约与操作日志.png');
 
   await login(page, 'client', '13900004001');
-  await page.goto(`${ROOT}/order/detail?id=4`);
+  await openOrder(page, 'WO-CH4-ACCEPT');
   await capture(page, '图4-11 客户验收与服务评价.png');
 
   await page.goto(`${ROOT}/notifications`);

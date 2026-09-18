@@ -1,6 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %><c:set var="pageTitle" value="申请配件"/><%@ include file="../header.jspf" %>
 <div class="page-head"><div><span class="eyebrow">配件申请</span><h1>从工单申请配件</h1><p>一张申请可包含多种配件，提交后由仓库管理员整单审核。</p></div></div>
-<form method="post" class="card border-0 shadow-sm">
+<form method="post" action="${pageContext.request.contextPath}/engineer/part/request" class="card border-0 shadow-sm">
     <div class="card-body p-4">
         <input type="hidden" name="orderId" value="${orderId}">
         <div class="row g-3">
